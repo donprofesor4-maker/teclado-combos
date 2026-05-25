@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keyboard Combos - Aprende el Teclado</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0f0f13;
+    color: #e8e8ed;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(88, 28, 135, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 50%, rgba(20, 100, 200, 0.08) 0%, transparent 50%);
+  }
+
+  #app {
+    width: 100%;
+    max-width: 560px;
+    padding: 24px 20px;
+    position: relative;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .stat {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+  }
+
+  .stat .icon { font-size: 18px; }
+  .stat .value { color: #fff; font-variant-numeric: tabular-nums; }
+
+  .stat-score .value { color: #fbbf24; }
+  .stat-level .value { color: #60a5fa; }
+  .stat-lives { min-width: 90px; justify-content: center; }
+  .stat-lives .value { font-size: 18px; letter-spacing: 2px; }
+
+  /* Level bar */
+  .level-bar-wrap {
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    height: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .level-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa);
+    border-radius: 100px;
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Main area */
+  .prompt-label {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  #comboDisplay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    min-height: 82px;
+    flex-wrap: wrap;
+  }
+
+  .keycap {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 22px;
+    padding: 14px 22px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+
+  .keycap.mod {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.2));
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #a5b4fc;
+    font-size: 16px;
+    padding: 10px 18px;
+  }
+
+  .keycap.main {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.1));
+    border-color: rgba(251, 191, 36, 0.25);
+    color: #fcd34d;
+    font-size: 28px;
+    padding: 16px 26px;
+  }
+
+  .keycap.altgr {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(219, 39, 119, 0.2));
+    border-color: rgba(236, 72, 153, 0.3);
+    color: #f9a8d4;
+    font-size: 16px;
+    padding: 10px 18px;
+  }
+
+  .keycap.sep {
+    background: none;
+    border: none;
+    box-shadow: none;
+    color: rgba(255,255,255,0.25);
+    font-size: 24px;
+    padding: 0 2px;
+    min-width: auto;
+  }
+
+  .keycap.glow {
+    animation: keyGlow 0.4s ease-out;
+  }
+
+  @keyframes keyGlow {
+    0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.3); }
+    100% { box-shadow: 0 0 30px 8px rgba(255,255,255,0); }
+  }
+
+  /* Feedback */
+  #feedback {
+    text-align: center;
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+
+  .fb-correct {
+    color: #4ade80;
+    font-weight: 700;
+    font-size: 20px;
+    animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .fb-wrong {
+    color: #fb7185;
+    font-weight: 600;
+    font-size: 16px;
+    animation: shake 0.4s ease;
+  }
+  .fb-streak {
+    color: #fbbf24;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .fb-levelup {
+    color: #60a5fa;
+    font-weight: 700;
+    font-size: 22px;
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .fb-waiting {
+    color: rgba(255,255,255,0.3);
+    font-size: 15px;
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+
+  /* Progress */
+  .progress-wrap {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .progress-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.3s;
+  }
+
+  .dot.done {
+    background: #6366f1;
+    border-color: #818cf8;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+  }
+
+  .dot.current {
+    background: rgba(251, 191, 36, 0.3);
+    border-color: #fbbf24;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.2); opacity: 1; }
+  }
+
+  .progress-text {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .progress-text strong {
+    color: rgba(255,255,255,0.7);
+    font-weight: 600;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 14px 20px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .legend span { display: flex; align-items: center; gap: 6px; }
+
+  .legend .lk {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 5px;
+    padding: 1px 7px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+  }
+
+  .legend .lk.altgr-lk { border-color: rgba(236, 72, 153, 0.3); color: #f9a8d4; }
+
+  /* Start / Game Over overlay */
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: rgba(15, 15, 19, 0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 28px;
+    z-index: 10;
+    padding: 40px 24px;
+    transition: opacity 0.4s, visibility 0.4s;
+  }
+
+  #overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  #overlay h1 {
+    font-size: 36px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #818cf8, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  #overlay h2 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #fb7185;
+  }
+
+  #overlay .sub {
+    color: rgba(255,255,255,0.5);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+    max-width: 380px;
+  }
+
+  #overlay .final-score {
+    font-size: 48px;
+    font-weight: 900;
+    color: #fbbf24;
+    margin: 8px 0;
+  }
+
+  #overlay .final-level {
+    font-size: 18px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 20px;
+  }
+
+  #overlay .final-stats {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 24px;
+  }
+  #overlay .final-stats div {
+    text-align: center;
+  }
+  #overlay .final-stats .num {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+  }
+  #overlay .final-stats .lbl {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 14px 40px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+    margin-top: 8px;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
+  }
+
+  .btn:active { transform: translateY(0); }
+
+  .btn-restart {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
+  }
+  .btn-restart:hover {
+    box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4);
+  }
+
+  /* Streak fire indicator */
+  .streak-fire {
+    display: inline-block;
+    font-size: 20px;
+    animation: fireAnim 0.6s infinite alternate;
+  }
+  @keyframes fireAnim {
+    from { transform: scale(1) rotate(-3deg); }
+    to { transform: scale(1.15) rotate(3deg); }
+  }
+
+  /* Wrong combo show */
+  .fb-combo-shown {
+    font-size: 13px;
+    color: rgba(255,255,255,0.3);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Scoreboard */
+  .sb-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    transition: background 0.2s;
+    line-height: 1;
+  }
+  .sb-btn:hover { background: rgba(255,255,255,0.08); }
+
+  #scoreboardOverlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    background: rgba(15, 15, 19, 0.9);
+    backdrop-filter: blur(12px);
+    border-radius: 28px;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.3s, visibility 0.3s;
+  }
+  #scoreboardOverlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .sb-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 0 4px;
+  }
+  .sb-header h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fbbf24;
+  }
+  .sb-close {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.4);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .sb-close:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+  .sb-table-wrap {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .sb-table-wrap::-webkit-scrollbar { width: 4px; }
+  .sb-table-wrap::-webkit-scrollbar-track { background: transparent; }
+  .sb-table-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+  .sb-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .sb-table th {
+    position: sticky;
+    top: 0;
+    background: rgba(15,15,19,0.95);
+    color: rgba(255,255,255,0.4);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 6px 6px;
+    text-align: left;
+  }
+  .sb-table td { padding: 6px 6px; border-top: 1px solid rgba(255,255,255,0.04); }
+  .sb-table tr:first-child td { border-top: none; }
+  .sb-table .rank { width: 28px; text-align: center; font-weight: 700; color: rgba(255,255,255,0.3); }
+  .sb-table .name { color: rgba(255,255,255,0.85); font-weight: 500; }
+  .sb-table .sc { color: #fbbf24; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .sb-table .lvl { color: rgba(255,255,255,0.35); font-size: 12px; text-align: center; }
+  .sb-table .dt { color: rgba(255,255,255,0.2); font-size: 11px; text-align: right; }
+
+  .sb-table tr.top1 td { background: rgba(251, 191, 36, 0.06); }
+  .sb-table tr.top2 td { background: rgba(168, 162, 158, 0.04); }
+  .sb-table tr.top3 td { background: rgba(180, 83, 9, 0.04); }
+
+  .sb-table tr.me td { background: rgba(99, 102, 241, 0.08); }
+  .sb-table tr.me .rank { color: #818cf8; }
+
+  .sb-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255,255,255,0.25);
+  }
+  .sb-empty .icon { font-size: 40px; display: block; margin-bottom: 12px; }
+  .sb-empty .txt { font-size: 14px; }
+  .sb-loading {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255,255,255,0.3);
+    font-size: 14px;
+  }
+
+  /* Name input for game over */
+  .name-input-wrap {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .name-input-wrap.hidden { display: none; }
+
+  .name-input {
+    font-family: 'Inter', sans-serif;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 15px;
+    width: 180px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .name-input:focus { border-color: rgba(99, 102, 241, 0.5); }
+  .name-input::placeholder { color: rgba(255,255,255,0.2); }
+
+  .btn-save-score {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25);
+  }
+  .btn-save-score:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(245, 158, 11, 0.35); }
+  .btn-save-score:active { transform: translateY(0); }
+  .btn-save-score:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .sb-saved-msg {
+    font-size: 13px;
+    color: #4ade80;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 480px) {
+    #app { padding: 16px 12px; }
+    header { gap: 6px; }
+    .stat { padding: 8px 12px; font-size: 12px; }
+    .keycap { font-size: 18px; padding: 10px 16px; min-width: 40px; }
+    .keycap.main { font-size: 22px; padding: 12px 20px; }
+    #comboDisplay { gap: 6px; }
+    #overlay h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <header>
+    <div class="stat stat-score">
+      <span class="icon">🏆</span>
+      <span class="value" id="scoreDisplay">0</span>
+    </div>
+    <div class="stat stat-level">
+      <span class="icon">📊</span>
+      <span class="value" id="levelDisplay">1</span>
+    </div>
+    <div class="stat stat-level-name">
+      <span class="value" id="levelNameDisplay" style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.6);">Principiante</span>
+    </div>
+    <div class="stat stat-lives">
+      <span class="value" id="livesDisplay">❤️❤️❤️</span>
+    </div>
+    <button class="sb-btn" id="sbToggle" title="Puntuaciones">🏅</button>
+  </header>
+
+  <div class="level-bar-wrap">
+    <div class="level-bar" id="levelBar"></div>
+  </div>
+
+  <div class="prompt-label">Presiona esta combinación</div>
+
+  <div id="comboDisplay">
+    <span class="keycap mod">Ctrl</span>
+    <span class="keycap sep">+</span>
+    <span class="keycap main">C</span>
+  </div>
+
+  <div id="feedback">
+    <span class="fb-waiting">Esperando tu presión...</span>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="progress-text">
+      Progreso: <strong id="progressCurrent">0</strong> / <strong id="progressTarget">5</strong> para subir de nivel
+    </div>
+  </div>
+
+  <div class="legend">
+    <span>🔵 <span class="lk">Ctrl</span> Control</span>
+    <span>🟡 <span class="lk">Mayús</span> Mayúsculas (Shift)</span>
+    <span>🟢 <span class="lk">Alt</span> Alt</span>
+    <span>🩷 <span class="lk altgr-lk">AltGr</span> Alt Gr (dcha. barra)</span>
+  </div>
+
+  <!-- Overlay (start / game over) -->
+  <div id="overlay">
+    <h1 id="overlayTitle">Keyboard Combos</h1>
+    <div class="sub" id="overlaySub">
+      Aprende combinaciones de teclado mientras ganas puntos y subes de nivel.<br>
+      Presiona los modificadores y luego la tecla principal.
+    </div>
+    <div class="final-score" id="overlayScore" style="display:none;"></div>
+    <div class="final-level" id="overlayLevel" style="display:none;"></div>
+    <div class="final-stats" id="overlayStats" style="display:none;">
+      <div><div class="num" id="finalCorrect">0</div><div class="lbl">Correctas</div></div>
+      <div><div class="num" id="finalStreak">0</div><div class="lbl">Mejor racha</div></div>
+      <div><div class="num" id="finalWrong">0</div><div class="lbl">Fallos</div></div>
+    </div>
+    <div class="name-input-wrap hidden" id="nameInputWrap">
+      <input class="name-input" id="nameInput" placeholder="Tu nombre" maxlength="20" autocomplete="off">
+      <button class="btn-save-score" id="saveScoreBtn">💾 Guardar</button>
+    </div>
+    <div id="saveMsg" style="font-size:13px;color:#4ade80;font-weight:600;min-height:20px;margin-top:2px;"></div>
+    <button class="btn" id="overlayBtn">Comenzar</button>
+  </div>
+
+  <!-- Scoreboard overlay -->
+  <div id="scoreboardOverlay" class="hidden">
+    <div class="sb-header">
+      <h2>🏆 Puntuaciones</h2>
+      <button class="sb-close" id="sbClose">✕</button>
+    </div>
+    <div class="sb-table-wrap" id="sbTableWrap">
+      <div class="sb-loading" id="sbLoading">Cargando puntuaciones...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ─── DOM refs ───
+  const $ = id => document.getElementById(id);
+  const scoreDisplay = $('scoreDisplay');
+  const levelDisplay = $('levelDisplay');
+  const levelNameDisplay = $('levelNameDisplay');
+  const livesDisplay = $('livesDisplay');
+  const levelBar = $('levelBar');
+  const comboDisplay = $('comboDisplay');
+  const feedback = $('feedback');
+  const progressDots = $('progressDots');
+  const progressCurrent = $('progressCurrent');
+  const progressTarget = $('progressTarget');
+  const overlay = $('overlay');
+  const overlayTitle = $('overlayTitle');
+  const overlaySub = $('overlaySub');
+  const overlayScore = $('overlayScore');
+  const overlayLevel = $('overlayLevel');
+  const overlayStats = $('overlayStats');
+  const finalCorrect = $('finalCorrect');
+  const finalStreak = $('finalStreak');
+  const finalWrong = $('finalWrong');
+  const overlayBtn = $('overlayBtn');
+  const nameInputWrap = $('nameInputWrap');
+  const nameInput = $('nameInput');
+  const saveScoreBtn = $('saveScoreBtn');
+  const saveMsg = $('saveMsg');
+  const sbOverlay = $('scoreboardOverlay');
+  const sbToggle = $('sbToggle');
+  const sbClose = $('sbClose');
+  const sbTableWrap = $('sbTableWrap');
+  const sbLoading = $('sbLoading');
+
+  // ─── JSONBin scoreboard config ───
+  const SCORE_CFG = {
+    apiKey: '',
+    binId: ''
+  };
+
+  // ─── Game state ───
+  const state = {
+    score: 0,
+    level: 1,
+    levelProgress: 0,
+    levelTarget: 5,
+    lives: 3,
+    maxLives: 3,
+    streak: 0,
+    bestStreak: 0,
+    correct: 0,
+    wrong: 0,
+    currentCombo: null,
+    waitingForNext: false,
+    running: false,
+  };
+
+  // ─── Level configs ───
+  const LEVELS = [
+    { name: 'Principiante', target: 6, types: ['ctrl_letter', 'shift_letter'] },
+    { name: 'Intermedio',   target: 8, types: ['shift_number', 'ctrl_number'] },
+    { name: 'Avanzado',     target: 8, types: ['ctrl_shift_letter', 'ctrl_shift_number'] },
+    { name: 'Experto',      target: 10, types: ['ctrl_alt_letter', 'shift_alt_letter', 'ctrl_alt_number'] },
+    { name: 'Maestro',      target: 10, types: ['ctrl_shift_alt_letter', 'ctrl_shift_number', 'shift_alt_number'] },
+    { name: 'Leyenda',      target: 12, types: ['all', 'triple_number', 'ctrl_alt_shift_number'] },
+  ];
+
+  const LEVEL_NAMES = LEVELS.map(l => l.name);
+  const MAX_LEVEL = LEVELS.length;
+
+  // ─── Combo generation ───
+
+  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÑ'.split('');
+  const CTRL_SKIP = new Set(['T', 'W', 'N', 'R', 'S', 'P', 'O', 'H', 'J', 'D', 'F', 'G', 'L', 'U', 'I', 'Q']);
+  const ALLOWED_LETTERS = LETTERS.filter(l => !CTRL_SKIP.has(l));
+  const NUMBERS = ['0','1','2','3','4','5','6','7','8','9'];
+  const SHIFT_SYMBOLS = { '1':'!','2':'"','3':'·','4':'$','5':'%','6':'&','7':'/','8':'(','9':')','0':'=' };
+  const ALTGR_SYMBOLS = { '2':'@','3':'#','4':'~','5':'€','6':'¬' };
+  const SPANISH_CODES = { 'Ñ': 'Semicolon' };
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function letterToCode(letter) {
+    return SPANISH_CODES[letter] || `Key${letter}`;
+  }
+
+  function makeCombo(mods, code, displayParts, pts) {
+    return { mods, code, displayParts, pts };
+  }
+
+  function generateCombo(types) {
+    const type = pick(types);
+
+    switch (type) {
+      case 'ctrl_letter': {
+        const letter = pick(ALLOWED_LETTERS);
+        return makeCombo(
+          { ctrl: true, shift: false, alt: false },
+          letterToCode(letter),
+          ['Ctrl', '+', letter],
+          10
+        );
+      }
+      case 'shift_letter': {
+        const letter = pick(LETTERS);
+        return makeCombo(
+          { ctrl: false, shift: true, alt: false },
+          letterToCode(letter),
+          ['Mayús', '+', letter],
+          10
+        );
+      }
+      case 'ctrl_number': {
+        const num = pick(NUMBERS);
+        return makeCombo(
+          { ctrl: true, shift: false, alt: false },
+          `Digit${num}`,
+          ['Ctrl', '+', num],
+          15
+        );
+      }
+      case 'shift_number': {
+        const num = pick(NUMBERS);
+        return makeCombo(
+          { ctrl: false, shift: true, alt: false },
+          `Digit${num}`,
+          ['Mayús', '+', SHIFT_SYMBOLS[num]],
+          15
+        );
+      }
+      case 'ctrl_shift_letter': {
+        const letter = pick(ALLOWED_LETTERS);
+        return makeCombo(
+          { ctrl: true, shift: true, alt: false },
+          letterToCode(letter),
+          ['Ctrl', '+', 'Mayús', '+', letter],
+          20
+        );
+      }
+      case 'ctrl_shift_number': {
+        const num = pick(NUMBERS);
+        return makeCombo(
+          { ctrl: true, shift: true, alt: false },
+          `Digit${num}`,
+          ['Ctrl', '+', 'Mayús', '+', num],
+          25
+        );
+      }
+      case 'ctrl_alt_letter': {
+        const letter = pick(ALLOWED_LETTERS);
+        return makeCombo(
+          { ctrl: true, shift: false, alt: true },
+          letterToCode(letter),
+          ['AltGr', '+', letter],
+          25
+        );
+      }
+      case 'ctrl_alt_number': {
+        const num = pick(NUMBERS);
+        return makeCombo(
+          { ctrl: true, shift: false, alt: true },
+          `Digit${num}`,
+          ['AltGr', '+', ALTGR_SYMBOLS[num] || num],
+          30
+        );
+      }
+      case 'shift_alt_letter': {
+        const letter = pick(LETTERS);
+        return makeCombo(
+          { ctrl: false, shift: true, alt: true },
+          letterToCode(letter),
+          ['Mayús', '+', 'Alt', '+', letter],
+          25
+        );
+      }
+      case 'shift_alt_number': {
+        const num = pick(NUMBERS);
+        return makeCombo(
+          { ctrl: false, shift: true, alt: true },
+          `Digit${num}`,
+          ['Mayús', '+', 'Alt', '+', SHIFT_SYMBOLS[num]],
+          30
+        );
+      }
+      case 'ctrl_shift_alt_letter': {
+        const letter = pick(ALLOWED_LETTERS);
+        return makeCombo(
+          { ctrl: true, shift: true, alt: true },
+          letterToCode(letter),
+          ['Ctrl', '+', 'Mayús', '+', 'Alt', '+', letter],
+          35
+        );
+      }
+      case 'triple_number': {
+        const num = pick(NUMBERS);
+        const modType = pick(['ctrl_shift', 'ctrl_alt', 'shift_alt']);
+        const mods = { ctrl: modType.includes('ctrl'), shift: modType.includes('shift'), alt: modType.includes('alt') };
+        let display;
+        if (modType === 'ctrl_shift') display = ['Ctrl', '+', 'Mayús', '+', num];
+        else if (modType === 'ctrl_alt') display = ['AltGr', '+', ALTGR_SYMBOLS[num] || num];
+        else display = ['Mayús', '+', 'Alt', '+', SHIFT_SYMBOLS[num]];
+        return makeCombo(mods, `Digit${num}`, display, 30);
+      }
+      case 'ctrl_alt_shift_number': {
+        const num = pick(NUMBERS);
+        return makeCombo(
+          { ctrl: true, shift: true, alt: true },
+          `Digit${num}`,
+          ['Ctrl', '+', 'Mayús', '+', 'Alt', '+', ALTGR_SYMBOLS[num] || num],
+          40
+        );
+      }
+      case 'all': {
+        const allTypes = ['ctrl_letter', 'shift_letter', 'ctrl_number', 'shift_number',
+                          'ctrl_shift_letter', 'ctrl_shift_number', 'ctrl_alt_letter',
+                          'shift_alt_letter'];
+        return generateCombo(allTypes);
+      }
+      default:
+        return generateCombo(['ctrl_letter']);
+    }
+  }
+
+  // ─── Rendering ───
+
+  function renderCombo(combo) {
+    comboDisplay.innerHTML = '';
+    const parts = combo.displayParts;
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      const el = document.createElement('span');
+      el.className = 'keycap';
+      if (p === '+') {
+        el.className = 'keycap sep';
+      } else if (p === 'Ctrl' || p === 'Mayús' || p === 'Alt') {
+        el.className = 'keycap mod';
+      } else if (p === 'AltGr') {
+        el.className = 'keycap altgr';
+      } else {
+        el.className = 'keycap main';
+      }
+      el.textContent = p;
+      comboDisplay.appendChild(el);
+    }
+  }
+
+  function renderProgress() {
+    const target = state.levelTarget;
+    const done = state.levelProgress;
+    progressDots.innerHTML = '';
+    for (let i = 0; i < target; i++) {
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      if (i < done) dot.classList.add('done');
+      else if (i === done) dot.classList.add('current');
+      progressDots.appendChild(dot);
+    }
+    progressCurrent.textContent = done;
+    progressTarget.textContent = target;
+    const pct = Math.min(100, (done / target) * 100);
+    levelBar.style.width = pct + '%';
+  }
+
+  function renderStats() {
+    scoreDisplay.textContent = state.score;
+    levelDisplay.textContent = state.level;
+    levelNameDisplay.textContent = LEVEL_NAMES[Math.min(state.level - 1, LEVEL_NAMES.length - 1)];
+    let hearts = '';
+    for (let i = 0; i < state.maxLives; i++) {
+      hearts += i < state.lives ? '❤️' : '🖤';
+    }
+    livesDisplay.textContent = hearts;
+  }
+
+  function setFeedback(html, className) {
+    feedback.innerHTML = html;
+    feedback.firstChild && (feedback.firstChild.className = className || 'fb-waiting');
+  }
+
+  function showFeedbackCorrect(pts) {
+    let html = `<span class="fb-correct">✅ ¡Correcto! +${pts} pts</span>`;
+    if (state.streak >= 3) {
+      const fire = state.streak >= 5 ? '🔥'.repeat(Math.min(state.streak - 2, 8)) : '🔥';
+      html += `<span class="fb-streak">${fire} Racha: ${state.streak}</span>`;
+    } else if (state.streak >= 2) {
+      html += `<span class="fb-streak">✨ Racha: ${state.streak}</span>`;
+    }
+    setFeedback(html, 'fb-correct');
+  }
+
+  function showFeedbackWrong(expected) {
+    setFeedback(
+      `<span class="fb-wrong">❌ ¡Fallaste! Era: ${expected}</span>`,
+      'fb-wrong'
+    );
+  }
+
+  function showFeedbackWaiting() {
+    setFeedback('<span class="fb-waiting">Esperando tu presión...</span>', 'fb-waiting');
+  }
+
+  function showFeedbackLevelUp() {
+    setFeedback(`<span class="fb-levelup">🎉 ¡Nuevo nivel: ${LEVEL_NAMES[Math.min(state.level - 1, LEVEL_NAMES.length - 1)]}!</span>`, 'fb-levelup');
+  }
+
+  // ─── Game logic ───
+
+  function getLevelConfig() {
+    const idx = Math.min(state.level - 1, LEVELS.length - 1);
+    return LEVELS[idx];
+  }
+
+  function getCombosForLevel() {
+    const cfg = getLevelConfig();
+    return generateCombo(cfg.types);
+  }
+
+  function nextCombo() {
+    state.currentCombo = getCombosForLevel();
+    renderCombo(state.currentCombo);
+    state.waitingForNext = false;
+    showFeedbackWaiting();
+  }
+
+  function handleCorrect(e) {
+    if (state.waitingForNext || !state.running) return;
+
+    const combo = state.currentCombo;
+    state.correct++;
+    state.streak++;
+    if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+
+    const streakBonus = Math.max(0, Math.floor((state.streak - 1) / 3)) * 5;
+    const totalPts = combo.pts + streakBonus;
+    state.score += totalPts;
+    state.levelProgress++;
+
+    showFeedbackCorrect(totalPts);
+    renderStats();
+
+    // Check level up
+    if (state.levelProgress >= state.levelTarget) {
+      state.levelProgress = 0;
+      if (state.level < MAX_LEVEL) {
+        state.level++;
+        state.levelTarget = getLevelConfig().target;
+        showFeedbackLevelUp();
+      } else {
+        // Max level - keep going
+        state.levelTarget = getLevelConfig().target;
+      }
+    }
+
+    renderProgress();
+    renderStats();
+
+    state.waitingForNext = true;
+    setTimeout(() => nextCombo(), 600);
+  }
+
+  function handleWrong(e) {
+    if (state.waitingForNext || !state.running) return;
+
+    state.wrong++;
+    state.streak = 0;
+    state.lives--;
+
+    const displayStr = state.currentCombo.displayParts.join(' ');
+    showFeedbackWrong(displayStr);
+    renderStats();
+
+    if (state.lives <= 0) {
+      gameOver();
+      return;
+    }
+
+    state.waitingForNext = true;
+    setTimeout(() => nextCombo(), 1000);
+  }
+
+  function checkCombo(e) {
+    if (state.waitingForNext || !state.running || !state.currentCombo) return;
+
+    const combo = state.currentCombo;
+    const mods = combo.mods;
+
+    // Ignore modifier-only presses and F-keys, arrows, etc.
+    if (e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt' || e.key === 'Meta' ||
+        e.key === 'AltGraph' || e.key === 'CapsLock' || e.key === 'Tab' ||
+        e.key === 'Escape' || e.key.startsWith('F') || e.key.startsWith('Arrow') ||
+        e.key === 'Home' || e.key === 'End' || e.key === 'PageUp' || e.key === 'PageDown' ||
+        e.key === 'Insert' || e.key === 'Delete') {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Check modifiers
+    const ctrlMatch = e.ctrlKey === mods.ctrl;
+    const shiftMatch = e.shiftKey === mods.shift;
+    const altMatch = e.altKey === mods.alt;
+    const metaCheck = !e.metaKey; // meta should NOT be pressed
+    const codeMatch = e.code === combo.code;
+
+    if (ctrlMatch && shiftMatch && altMatch && metaCheck && codeMatch) {
+      handleCorrect(e);
+    } else {
+      handleWrong(e);
+    }
+  }
+
+  function handleKeyUp(e) {
+    // not needed for detection
+  }
+
+  // ─── Scoreboard (JSONBin.io + localStorage) ───
+
+  function getLocalScores() {
+    try { return JSON.parse(localStorage.getItem('kc_scores') || '[]'); } catch { return []; }
+  }
+
+  function setLocalScores(scores) {
+    localStorage.setItem('kc_scores', JSON.stringify(scores));
+  }
+
+  async function loadScores() {
+    if (SCORE_CFG.apiKey && SCORE_CFG.binId) {
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${SCORE_CFG.binId}`, {
+          headers: { 'X-Master-Key': SCORE_CFG.apiKey }
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        const scores = data.record && data.record.scores ? data.record.scores : [];
+        setLocalScores(scores);
+        return scores;
+      } catch (e) {
+        console.warn('JSONBin load failed, using local:', e.message);
+      }
+    }
+    return getLocalScores();
+  }
+
+  async function saveScore(name, score, level, correct) {
+    const entry = { name, score, level, correct, date: new Date().toISOString().slice(0, 10) };
+    let scores = getLocalScores();
+    scores.push(entry);
+    scores.sort((a, b) => b.score - a.score);
+    scores = scores.slice(0, 100);
+    setLocalScores(scores);
+
+    if (SCORE_CFG.apiKey) {
+      try {
+        if (!SCORE_CFG.binId) {
+          const res = await fetch('https://api.jsonbin.io/v3/b', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Master-Key': SCORE_CFG.apiKey,
+            },
+            body: JSON.stringify({ scores })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            SCORE_CFG.binId = data.metadata.id;
+            try { localStorage.setItem('kc_bin_id', data.metadata.id); } catch {}
+          }
+        } else {
+          await fetch(`https://api.jsonbin.io/v3/b/${SCORE_CFG.binId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Master-Key': SCORE_CFG.apiKey,
+            },
+            body: JSON.stringify({ scores })
+          });
+        }
+      } catch (e) {
+        console.warn('JSONBin save failed:', e.message);
+      }
+    }
+    return scores;
+  }
+
+  function formatDate(d) {
+    const parts = d.split('-');
+    return parts[2] + '/' + parts[1] + '/' + parts[0];
+  }
+
+  async function renderScoreboard() {
+    sbLoading.textContent = 'Cargando puntuaciones...';
+    sbLoading.style.display = 'block';
+    sbTableWrap.querySelector('.sb-table')?.remove();
+    sbTableWrap.querySelector('.sb-empty')?.remove();
+
+    let scores;
+    try {
+      scores = await loadScores();
+    } catch {
+      scores = getLocalScores();
+    }
+
+    sbLoading.style.display = 'none';
+
+    if (!scores || scores.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'sb-empty';
+      empty.innerHTML = '<span class="icon">🏅</span><span class="txt">Aún no hay puntuaciones.<br>¡Sé el primero en jugar!</span>';
+      sbTableWrap.appendChild(empty);
+      return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'sb-table';
+    table.innerHTML = '<thead><tr><th class="rank">#</th><th class="name">Nombre</th><th class="sc">Puntos</th><th class="lvl">Nivel</th><th class="dt">Fecha</th></tr></thead>';
+    const tbody = document.createElement('tbody');
+
+    const myName = (localStorage.getItem('kc_player_name') || '').toLowerCase();
+
+    scores.forEach((s, i) => {
+      const tr = document.createElement('tr');
+      if (i === 0) tr.classList.add('top1');
+      else if (i === 1) tr.classList.add('top2');
+      else if (i === 2) tr.classList.add('top3');
+      if (myName && s.name && s.name.toLowerCase() === myName) tr.classList.add('me');
+
+      const rank = document.createElement('td');
+      rank.className = 'rank';
+      if (i === 0) rank.textContent = '🥇';
+      else if (i === 1) rank.textContent = '🥈';
+      else if (i === 2) rank.textContent = '🥉';
+      else rank.textContent = String(i + 1);
+
+      const nameTd = document.createElement('td');
+      nameTd.className = 'name';
+      nameTd.textContent = s.name || 'Anónimo';
+
+      const scoreTd = document.createElement('td');
+      scoreTd.className = 'sc';
+      scoreTd.textContent = s.score;
+
+      const levelTd = document.createElement('td');
+      levelTd.className = 'lvl';
+      levelTd.textContent = s.level || '-';
+
+      const dateTd = document.createElement('td');
+      dateTd.className = 'dt';
+      dateTd.textContent = s.date ? formatDate(s.date) : '-';
+
+      tr.appendChild(rank);
+      tr.appendChild(nameTd);
+      tr.appendChild(scoreTd);
+      tr.appendChild(levelTd);
+      tr.appendChild(dateTd);
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    sbTableWrap.appendChild(table);
+  }
+
+  function showScoreboard() {
+    sbOverlay.classList.remove('hidden');
+    renderScoreboard();
+  }
+
+  function hideScoreboard() {
+    sbOverlay.classList.add('hidden');
+  }
+
+  // ─── Start / Game Over ───
+
+  function startGame() {
+    state.score = 0;
+    state.level = 1;
+    state.levelProgress = 0;
+    state.levelTarget = LEVELS[0].target;
+    state.lives = 3;
+    state.streak = 0;
+    state.bestStreak = 0;
+    state.correct = 0;
+    state.wrong = 0;
+    state.currentCombo = null;
+    state.waitingForNext = false;
+    state.running = true;
+
+    overlay.classList.add('hidden');
+    renderStats();
+    nextCombo();
+    renderProgress();
+  }
+
+  function gameOver() {
+    state.running = false;
+    overlay.classList.remove('hidden');
+    overlayTitle.textContent = '💀 Game Over';
+    overlaySub.textContent = '¡Se te acabaron las vidas! Sigue practicando.';
+    overlayScore.style.display = 'block';
+    overlayScore.textContent = state.score;
+    overlayLevel.style.display = 'block';
+    overlayLevel.textContent = `Nivel ${state.level} - ${LEVEL_NAMES[Math.min(state.level - 1, LEVEL_NAMES.length - 1)]}`;
+    overlayStats.style.display = 'flex';
+    finalCorrect.textContent = state.correct;
+    finalStreak.textContent = state.bestStreak;
+    finalWrong.textContent = state.wrong;
+
+    // Show name input if player has a score
+    if (state.score > 0) {
+      const savedName = (localStorage.getItem('kc_player_name') || '');
+      nameInput.value = savedName;
+      nameInputWrap.classList.remove('hidden');
+      saveMsg.textContent = '';
+      saveScoreBtn.disabled = false;
+      setTimeout(() => nameInput.focus(), 100);
+    } else {
+      nameInputWrap.classList.add('hidden');
+      saveMsg.textContent = '';
+    }
+
+    overlayBtn.textContent = 'Reintentar';
+    overlayBtn.className = 'btn btn-restart';
+    overlayBtn.onclick = startGame;
+  }
+
+  async function handleSaveScore() {
+    const name = nameInput.value.trim() || 'Anónimo';
+    saveScoreBtn.disabled = true;
+    saveMsg.textContent = '⏳ Guardando...';
+    try {
+      await saveScore(name, state.score, state.level, state.correct);
+      localStorage.setItem('kc_player_name', name);
+      saveMsg.textContent = '✅ ¡Puntuación guardada!';
+      nameInputWrap.classList.add('hidden');
+    } catch (e) {
+      saveMsg.textContent = '❌ Error al guardar';
+      saveScoreBtn.disabled = false;
+    }
+  }
+
+  function showStart() {
+    overlay.classList.remove('hidden');
+    overlayTitle.textContent = '⌨️ Keyboard Combos';
+    overlaySub.innerHTML =
+      'Aprende combinaciones de teclado mientras ganas puntos y subes de nivel.<br><br>' +
+      'Presiona los modificadores <strong>Ctrl</strong>, <strong>Mayús</strong> y <strong>Alt</strong> ' +
+      'junto con otras teclas.<br><br>' +
+      '🟢 <strong>AltGr</strong> se detecta como Ctrl + Alt.<br>' +
+      'Cada nivel tiene combinaciones más difíciles. ¡3 vidas!';
+    overlayScore.style.display = 'none';
+    overlayLevel.style.display = 'none';
+    overlayStats.style.display = 'none';
+    nameInputWrap.classList.add('hidden');
+    saveMsg.textContent = '';
+    overlayBtn.textContent = 'Comenzar';
+    overlayBtn.className = 'btn';
+    overlayBtn.onclick = startGame;
+  }
+
+  // ─── Keyboard listener ───
+
+  document.addEventListener('keydown', checkCombo);
+
+  // ─── Scoreboard event listeners ───
+
+  sbToggle.addEventListener('click', showScoreboard);
+  sbClose.addEventListener('click', hideScoreboard);
+  saveScoreBtn.addEventListener('click', handleSaveScore);
+
+  nameInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleSaveScore();
+    e.stopPropagation();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !sbOverlay.classList.contains('hidden')) {
+      hideScoreboard();
+      e.preventDefault();
+    }
+  });
+
+  // ─── Boot ───
+  showStart();
+  renderStats();
+  renderProgress();
+  // Show demo combo
+  state.currentCombo = makeCombo({ ctrl: true, shift: false, alt: false }, 'KeyC', ['Ctrl', '+', 'C'], 10);
+  renderCombo(state.currentCombo);
+})();
+</script>
+</body>
+</html>
