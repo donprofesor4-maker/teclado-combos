@@ -710,10 +710,10 @@
   const sbTableWrap = $('sbTableWrap');
   const sbLoading = $('sbLoading');
 
-  // ─── JSONBin scoreboard config ───
+  // ─── GitHub Gist scoreboard config ───
   const SCORE_CFG = {
-    apiKey: '',
-    binId: ''
+    gistId: '7bb744a5de9335d04d307560f4c9bb27',
+    token: ''
   };
 
   // ─── Game state ───
@@ -1136,7 +1136,7 @@
     // not needed for detection
   }
 
-  // ─── Scoreboard (JSONBin.io + localStorage) ───
+  // ─── Scoreboard (GitHub Gist + localStorage) ───
 
   function getLocalScores() {
     try { return JSON.parse(localStorage.getItem('kc_scores') || '[]'); } catch { return []; }
@@ -1147,18 +1147,20 @@
   }
 
   async function loadScores() {
-    if (SCORE_CFG.apiKey && SCORE_CFG.binId) {
+    if (SCORE_CFG.gistId) {
       try {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${SCORE_CFG.binId}`, {
-          headers: { 'X-Master-Key': SCORE_CFG.apiKey }
-        });
+        const res = await fetch(`https://api.github.com/gists/${SCORE_CFG.gistId}`);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
-        const scores = data.record && data.record.scores ? data.record.scores : [];
-        setLocalScores(scores);
-        return scores;
+        const content = data.files && data.files['scores-init.json'] && data.files['scores-init.json'].content;
+        if (content) {
+          const parsed = JSON.parse(content);
+          const scores = parsed.scores || [];
+          setLocalScores(scores);
+          return scores;
+        }
       } catch (e) {
-        console.warn('JSONBin load failed, using local:', e.message);
+        console.warn('Gist load failed, using local:', e.message);
       }
     }
     return getLocalScores();
@@ -1172,34 +1174,25 @@
     scores = scores.slice(0, 100);
     setLocalScores(scores);
 
-    if (SCORE_CFG.apiKey) {
+    if (SCORE_CFG.gistId && SCORE_CFG.token) {
       try {
-        if (!SCORE_CFG.binId) {
-          const res = await fetch('https://api.jsonbin.io/v3/b', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Master-Key': SCORE_CFG.apiKey,
-            },
-            body: JSON.stringify({ scores })
-          });
-          if (res.ok) {
-            const data = await res.json();
-            SCORE_CFG.binId = data.metadata.id;
-            try { localStorage.setItem('kc_bin_id', data.metadata.id); } catch {}
-          }
-        } else {
-          await fetch(`https://api.jsonbin.io/v3/b/${SCORE_CFG.binId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Master-Key': SCORE_CFG.apiKey,
-            },
-            body: JSON.stringify({ scores })
-          });
-        }
+        await fetch(`https://api.github.com/gists/${SCORE_CFG.gistId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SCORE_CFG.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          },
+          body: JSON.stringify({
+            files: {
+              'scores-init.json': {
+                content: JSON.stringify({ scores })
+              }
+            }
+          })
+        });
       } catch (e) {
-        console.warn('JSONBin save failed:', e.message);
+        console.warn('Gist save failed, saved locally:', e.message);
       }
     }
     return scores;
