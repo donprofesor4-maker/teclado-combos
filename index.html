@@ -1200,9 +1200,13 @@
     e.stopPropagation();
 
     // Check modifiers
-    const ctrlMatch = e.ctrlKey === mods.ctrl;
+    // Windows AltGr fix: some browsers report altKey=false for AltGr
+    const altGrPressed = typeof e.getModifierState === 'function' && e.getModifierState('AltGraph');
+    const ctrlPressed = altGrPressed || e.ctrlKey;
+    const altPressed = altGrPressed || e.altKey;
+    const ctrlMatch = ctrlPressed === mods.ctrl;
     const shiftMatch = e.shiftKey === mods.shift;
-    const altMatch = e.altKey === mods.alt;
+    const altMatch = altPressed === mods.alt;
     const metaCheck = !e.metaKey; // meta should NOT be pressed
 
     let keyMatch;
