@@ -1500,11 +1500,10 @@
   document.addEventListener('keydown', checkCombo);
   document.addEventListener('keydown', onModKeyDown);
   document.addEventListener('keyup', onModKeyUp);
-  // Capture-phase: intercept browser shortcuts (zoom, tabs) before they fire
+  // Capture-phase: prevent browser shortcuts (zoom, tabs, bookmarks, copy, paste, etc.)
   document.addEventListener('keydown', function(e) {
     if (!state.running) return;
-    const code = e.code;
-    if (e.ctrlKey && code && code.startsWith('Digit')) {
+    if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
     }
   }, true);
