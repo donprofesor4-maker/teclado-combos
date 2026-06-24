@@ -953,7 +953,7 @@
         if (sym) {
           return makeCombo(
             { ctrl: true, shift: false, alt: true },
-            null,
+            `Digit${num}`,
             ['AltGr', '+', sym],
             30,
             sym
@@ -1005,7 +1005,7 @@
           const sym = LAYOUT.altgrSymbols[num];
           if (sym) {
             display = ['AltGr', '+', sym];
-            code = null;
+            code = `Digit${num}`;
             expectedKey = sym;
           } else {
             display = ['AltGr', '+', num];
@@ -1023,7 +1023,7 @@
         if (sym) {
           return makeCombo(
             { ctrl: true, shift: true, alt: true },
-            null,
+            `Digit${num}`,
             ['AltGr', '+', 'Mayús', '+', sym],
             40,
             sym
@@ -1237,6 +1237,9 @@
     let keyMatch;
     if (combo.expectedKey) {
       keyMatch = e.key === combo.expectedKey;
+      if (!keyMatch && combo.code) {
+        keyMatch = e.code === combo.code;
+      }
     } else if (combo.code) {
       keyMatch = e.code === combo.code;
     } else {
