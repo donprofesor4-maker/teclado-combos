@@ -837,6 +837,7 @@
 
   const CTRL_SKIP = new Set(['T', 'W', 'N', 'R', 'S', 'P', 'O', 'H', 'J', 'D', 'F', 'G', 'L', 'U', 'I', 'Q']);
   const NUMBERS = ['0','1','2','3','4','5','6','7','8','9'];
+  const CTRL_NUMBERS = ['1','2','3','4','5','6','7','8','9']; // exclude 0 — browser zoom reset
 
   const LAYOUT_DATA = {
     es: {
@@ -902,7 +903,7 @@
         );
       }
       case 'ctrl_number': {
-        const num = pick(NUMBERS);
+        const num = pick(CTRL_NUMBERS);
         return makeCombo(
           { ctrl: true, shift: false, alt: false },
           `Digit${num}`,
@@ -1496,6 +1497,14 @@
   document.addEventListener('keydown', checkCombo);
   document.addEventListener('keydown', onModKeyDown);
   document.addEventListener('keyup', onModKeyUp);
+  // Capture-phase: intercept browser shortcuts (zoom, tabs) before they fire
+  document.addEventListener('keydown', function(e) {
+    if (!state.running) return;
+    const code = e.code;
+    if (e.ctrlKey && code && code.startsWith('Digit')) {
+      e.preventDefault();
+    }
+  }, true);
 
   // ─── Scoreboard event listeners ───
 
