@@ -777,6 +777,32 @@
   function getGistToken() { return localStorage.getItem('kc_gist_token') || ''; }
   function setGistToken(v) { localStorage.setItem('kc_gist_token', v); }
 
+  // ─── Held modifier keys (tracked by physical key) ───
+  const heldMods = { ctrl: false, shift: false, alt: false, altGr: false };
+
+  function onModKeyDown(e) {
+    if (e.code === 'ControlLeft' || e.code === 'ControlRight') heldMods.ctrl = true;
+    else if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') heldMods.shift = true;
+    else if (e.code === 'AltLeft') heldMods.alt = true;
+    else if (e.code === 'AltRight') heldMods.altGr = true;
+  }
+
+  function onModKeyUp(e) {
+    if (e.code === 'ControlLeft' || e.code === 'ControlRight') heldMods.ctrl = false;
+    else if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') heldMods.shift = false;
+    else if (e.code === 'AltLeft') heldMods.alt = false;
+    else if (e.code === 'AltRight') heldMods.altGr = false;
+  }
+
+  function getModState() {
+    return {
+      ctrl: heldMods.ctrl || heldMods.altGr,
+      shift: heldMods.shift,
+      alt: heldMods.alt || heldMods.altGr,
+      altGr: heldMods.altGr,
+    };
+  }
+
   // ─── Game state ───
   const state = {
     score: 0,
@@ -838,13 +864,9 @@
   async function detectLayout() {
     try {
       const map = await navigator.keyboard.getLayoutMap();
-      const k = map.get('Semicolon');
-      if (k === 'ñ') return 'es';
-      if (k === 'ç') return 'es';
-    } catch(e) {}
-    try {
-      const k = await navigator.keyboard.getLayoutMap();
-      if (k.get('KeyZ') === 'z' && k.get('Semicolon') === ';') return 'us';
+      const semicolon = map.get('Semicolon');
+      if (semicolon === 'ñ' || semicolon === 'ç') return 'es';
+      if (map.get('KeyZ') === 'z' && semicolon === ';') return 'us';
     } catch(e) {}
     return null;
   }
@@ -966,7 +988,7 @@
         return makeCombo(
           { ctrl: true, shift: true, alt: true },
           letterToCode(letter),
-          ['Ctrl', '+', 'Mayús', '+', 'Alt', '+', letter],
+          ['AltGr', '+', 'Mayús', '+', letter],
           35
         );
       }
@@ -1001,7 +1023,7 @@
           return makeCombo(
             { ctrl: true, shift: true, alt: true },
             null,
-            ['Ctrl', '+', 'Mayús', '+', 'Alt', '+', sym],
+            ['AltGr', '+', 'Mayús', '+', sym],
             40,
             sym
           );
@@ -1009,7 +1031,7 @@
         return makeCombo(
           { ctrl: true, shift: true, alt: true },
           `Digit${num}`,
-          ['Ctrl', '+', 'Mayús', '+', 'Alt', '+', num],
+          ['AltGr', '+', 'Mayús', '+', num],
           40
         );
       }
@@ -1183,6 +1205,7 @@
 
   function checkCombo(e) {
     if (state.waitingForNext || !state.running || !state.currentCombo) return;
+    if (e.repeat) return;
 
     const combo = state.currentCombo;
     const mods = combo.mods;
@@ -1200,14 +1223,15 @@
     e.stopPropagation();
 
     // Check modifiers
-    // Windows AltGr fix: some browsers report altKey=false for AltGr
-    const altGrPressed = typeof e.getModifierState === 'function' && e.getModifierState('AltGraph');
-    const ctrlPressed = altGrPressed || e.ctrlKey;
-    const altPressed = altGrPressed || e.altKey;
+    // Use tracked physical key state + event flags as fallback
+    const m = getModState();
+    const altGraph = typeof e.getModifierState === 'function' && e.getModifierState('AltGraph');
+    const ctrlPressed = m.ctrl || altGraph || e.ctrlKey;
+    const altPressed = m.alt || altGraph || e.altKey;
     const ctrlMatch = ctrlPressed === mods.ctrl;
-    const shiftMatch = e.shiftKey === mods.shift;
+    const shiftMatch = (m.shift || e.shiftKey) === mods.shift;
     const altMatch = altPressed === mods.alt;
-    const metaCheck = !e.metaKey; // meta should NOT be pressed
+    const metaCheck = !e.metaKey;
 
     let keyMatch;
     if (combo.expectedKey) {
@@ -1394,6 +1418,7 @@
     state.currentCombo = null;
     state.waitingForNext = false;
     state.running = true;
+    heldMods.ctrl = false; heldMods.shift = false; heldMods.alt = false; heldMods.altGr = false;
 
     overlay.classList.add('hidden');
     renderStats();
@@ -1466,9 +1491,11 @@
     overlayBtn.onclick = startGame;
   }
 
-  // ─── Keyboard listener ───
+  // ─── Keyboard listeners ───
 
   document.addEventListener('keydown', checkCombo);
+  document.addEventListener('keydown', onModKeyDown);
+  document.addEventListener('keyup', onModKeyUp);
 
   // ─── Scoreboard event listeners ───
 
