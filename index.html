@@ -669,7 +669,7 @@
     <span>🔵 <span class="lk">Ctrl</span> Control</span>
     <span>🟡 <span class="lk">Mayús</span> Mayúsculas (Shift)</span>
     <span>🟢 <span class="lk">Alt</span> Alt</span>
-    <span>🩷 <span class="lk altgr-lk">AltGr</span> AltGr</span>
+    <span>🩷 <span class="lk altgr-lk">AltGr</span> AltGr / Alt derecho (Windows)</span>
     <span id="layoutName" style="margin-left:4px;font-size:11px;color:rgba(255,255,255,0.25);">Español</span>
   </div>
 
@@ -780,18 +780,28 @@
   // ─── Held modifier keys (tracked by physical key) ───
   const heldMods = { ctrl: false, shift: false, alt: false, altGr: false };
 
+  function isAltGrEvent(e) {
+    const browserAltGraph = typeof e.getModifierState === 'function' &&
+      e.getModifierState('AltGraph');
+
+    // Según el teclado y el navegador, AltGr puede llegar como AltGraph,
+    // AltRight o como Ctrl+Alt. Aceptamos las tres formas.
+    return heldMods.altGr || e.key === 'AltGraph' || e.code === 'AltRight' ||
+      browserAltGraph || (e.ctrlKey && e.altKey && !e.metaKey);
+  }
+
   function onModKeyDown(e) {
     if (e.code === 'ControlLeft' || e.code === 'ControlRight') heldMods.ctrl = true;
     else if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') heldMods.shift = true;
     else if (e.code === 'AltLeft') heldMods.alt = true;
-    else if (e.code === 'AltRight') heldMods.altGr = true;
+    else if (e.code === 'AltRight' || e.key === 'AltGraph') heldMods.altGr = true;
   }
 
   function onModKeyUp(e) {
     if (e.code === 'ControlLeft' || e.code === 'ControlRight') heldMods.ctrl = false;
     else if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') heldMods.shift = false;
     else if (e.code === 'AltLeft') heldMods.alt = false;
-    else if (e.code === 'AltRight') heldMods.altGr = false;
+    else if (e.code === 'AltRight' || e.key === 'AltGraph') heldMods.altGr = false;
   }
 
   function getModState() {
@@ -1226,7 +1236,7 @@
     // Check modifiers
     // Use tracked physical key state + event flags as fallback
     const m = getModState();
-    const altGraph = typeof e.getModifierState === 'function' && e.getModifierState('AltGraph');
+    const altGraph = isAltGrEvent(e);
     const ctrlPressed = m.ctrl || altGraph || e.ctrlKey;
     const altPressed = m.alt || altGraph || e.altKey;
     const ctrlMatch = ctrlPressed === mods.ctrl;
@@ -1500,6 +1510,12 @@
   document.addEventListener('keydown', checkCombo);
   document.addEventListener('keydown', onModKeyDown);
   document.addEventListener('keyup', onModKeyUp);
+  window.addEventListener('blur', function() {
+    heldMods.ctrl = false;
+    heldMods.shift = false;
+    heldMods.alt = false;
+    heldMods.altGr = false;
+  });
   // Capture-phase: prevent browser shortcuts (zoom, tabs, bookmarks, copy, paste, etc.)
   document.addEventListener('keydown', function(e) {
     if (!state.running) return;
