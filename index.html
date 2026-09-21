@@ -885,9 +885,9 @@
 
   function getModState() {
     return {
-      ctrl: heldMods.ctrl || heldMods.altGr,
+      ctrl: heldMods.ctrl,
       shift: heldMods.shift,
-      alt: heldMods.alt || heldMods.altGr,
+      alt: heldMods.alt,
       altGr: heldMods.altGr,
     };
   }
@@ -945,11 +945,9 @@
   function showVirtualTarget(combo) {
     virtualKeyboard.querySelectorAll('.vk-key').forEach(key => key.classList.remove('target', 'correct', 'wrong'));
     const mods = combo.mods;
-    if (mods.ctrl && mods.alt) virtualKeysForMod('altgr').forEach(key => key.classList.add('target'));
-    else {
-      if (mods.ctrl) virtualKeysForMod('ctrl').forEach(key => key.classList.add('target'));
-      if (mods.alt) virtualKeysForMod('alt').forEach(key => key.classList.add('target'));
-    }
+    if (mods.altGr) virtualKeysForMod('altgr').forEach(key => key.classList.add('target'));
+    if (mods.ctrl) virtualKeysForMod('ctrl').forEach(key => key.classList.add('target'));
+    if (mods.alt) virtualKeysForMod('alt').forEach(key => key.classList.add('target'));
     if (mods.shift) virtualKeysForMod('shift').forEach(key => key.classList.add('target'));
     virtualKeysForCode(combo.code).forEach(key => key.classList.add('target'));
   }
@@ -1111,7 +1109,7 @@
       case 'ctrl_alt_letter': {
         const letter = pick(getAllowedLetters());
         return makeCombo(
-          { ctrl: true, shift: false, alt: true },
+          { ctrl: false, shift: false, alt: false, altGr: true },
           letterToCode(letter),
           ['AltGr', '+', letter],
           25
@@ -1122,7 +1120,7 @@
         const sym = LAYOUT.altgrSymbols[num];
         if (sym) {
           return makeCombo(
-            { ctrl: true, shift: false, alt: true },
+            { ctrl: false, shift: false, alt: false, altGr: true },
             `Digit${num}`,
             ['AltGr', '+', sym],
             30,
@@ -1130,7 +1128,7 @@
           );
         }
         return makeCombo(
-          { ctrl: true, shift: false, alt: true },
+          { ctrl: false, shift: false, alt: false, altGr: true },
           `Digit${num}`,
           ['AltGr', '+', num],
           30
@@ -1157,7 +1155,7 @@
       case 'ctrl_shift_alt_letter': {
         const letter = pick(getAllowedLetters());
         return makeCombo(
-          { ctrl: true, shift: true, alt: true },
+          { ctrl: false, shift: true, alt: false, altGr: true },
           letterToCode(letter),
           ['AltGr', '+', 'Mayús', '+', letter],
           35
@@ -1166,7 +1164,12 @@
       case 'triple_number': {
         const num = pick(NUMBERS);
         const modType = pick(['ctrl_shift', 'ctrl_alt', 'shift_alt']);
-        const mods = { ctrl: modType.includes('ctrl'), shift: modType.includes('shift'), alt: modType.includes('alt') };
+        const mods = {
+          ctrl: modType === 'ctrl_shift',
+          shift: modType === 'ctrl_shift' || modType === 'shift_alt',
+          alt: modType === 'shift_alt',
+          altGr: modType === 'ctrl_alt',
+        };
         let display, code, expectedKey;
         if (modType === 'ctrl_shift') {
           display = ['Ctrl', '+', 'Mayús', '+', num];
@@ -1192,7 +1195,7 @@
         const sym = LAYOUT.altgrSymbols[num];
         if (sym) {
           return makeCombo(
-            { ctrl: true, shift: true, alt: true },
+            { ctrl: false, shift: true, alt: false, altGr: true },
             `Digit${num}`,
             ['AltGr', '+', 'Mayús', '+', sym],
             40,
@@ -1402,11 +1405,12 @@
     // Use tracked physical key state + event flags as fallback
     const m = getModState();
     const altGraph = isAltGrEvent(e);
-    const ctrlPressed = m.ctrl || altGraph || e.ctrlKey;
-    const altPressed = m.alt || altGraph || e.altKey;
-    const ctrlMatch = ctrlPressed === mods.ctrl;
+    const ctrlPressed = (m.ctrl || e.ctrlKey) && !altGraph;
+    const altPressed = (m.alt || e.altKey) && !altGraph;
+    const altGrMatch = altGraph === !!mods.altGr;
+    const ctrlMatch = ctrlPressed === !!mods.ctrl;
     const shiftMatch = (m.shift || e.shiftKey) === mods.shift;
-    const altMatch = altPressed === mods.alt;
+    const altMatch = altPressed === !!mods.alt;
     const metaCheck = !e.metaKey;
 
     let keyMatch;
@@ -1421,7 +1425,7 @@
       keyMatch = false;
     }
 
-    if (ctrlMatch && shiftMatch && altMatch && metaCheck && keyMatch) {
+    if (ctrlMatch && shiftMatch && altMatch && altGrMatch && metaCheck && keyMatch) {
       handleCorrect(e);
     } else {
       handleWrong(e);
