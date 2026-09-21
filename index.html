@@ -236,6 +236,8 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     font-weight: 700;
+    white-space: pre-line;
+    line-height: 1.05;
     transition: transform 0.08s, background 0.15s, border-color 0.15s, box-shadow 0.15s;
   }
 
@@ -894,20 +896,23 @@
 
   const VIRTUAL_KEY_ROWS = [
     { className: '', keys: [
-      ['1','Digit1'], ['2','Digit2'], ['3','Digit3'], ['4','Digit4'], ['5','Digit5'],
-      ['6','Digit6'], ['7','Digit7'], ['8','Digit8'], ['9','Digit9'], ['0','Digit0']
+      ['1\n!','Digit1'], ['2\n"','Digit2'], ['3\n#','Digit3'], ['4\n$','Digit4'], ['5\n%','Digit5'],
+      ['6\n&','Digit6'], ['7\n/','Digit7'], ['8\n(','Digit8'], ['9\n)','Digit9'], ['0\n=','Digit0'],
+      ["'\n?",'Quote'], ['¿\n¡','BracketLeft']
     ]},
     { className: '', keys: [
       ['Q','KeyQ'], ['W','KeyW'], ['E','KeyE'], ['R','KeyR'], ['T','KeyT'],
-      ['Y','KeyY'], ['U','KeyU'], ['I','KeyI'], ['O','KeyO'], ['P','KeyP']
+      ['Y','KeyY'], ['U','KeyU'], ['I','KeyI'], ['O','KeyO'], ['P','KeyP'],
+      ['´\n¨','BracketLeft'], ['+\n*','BracketRight']
     ]},
     { className: 'row-home', keys: [
       ['A','KeyA'], ['S','KeyS'], ['D','KeyD'], ['F','KeyF'], ['G','KeyG'],
-      ['H','KeyH'], ['J','KeyJ'], ['K','KeyK'], ['L','KeyL'], ['Ñ','Semicolon']
+      ['H','KeyH'], ['J','KeyJ'], ['K','KeyK'], ['L','KeyL'], ['Ñ','Semicolon'],
+      ['{\n[','BracketLeft'], ['}\n]','BracketRight']
     ]},
     { className: 'row-shift', keys: [
-      ['Mayús','ShiftLeft','shift','wide'], ['Z','KeyZ'], ['X','KeyX'], ['C','KeyC'],
-      ['V','KeyV'], ['B','KeyB'], ['N','KeyN'], ['M','KeyM'],
+      ['<\n>','IntlBackslash'], ['Mayús','ShiftLeft','shift','wide'], ['Z','KeyZ'], ['X','KeyX'], ['C','KeyC'],
+      ['V','KeyV'], ['B','KeyB'], ['N','KeyN'], ['M','KeyM'], [',\n;','Comma'], ['.\n:','Period'], ['-\n_','Minus'],
       ['Mayús','ShiftRight','shift','wide']
     ]},
     { className: '', keys: [
