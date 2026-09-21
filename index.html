@@ -888,6 +888,18 @@
     else if (e.code === 'AltRight' || e.key === 'AltGraph') heldMods.altGr = false;
   }
 
+  // Windows puede enviar AltGr como una secuencia CtrlLeft + AltRight.
+  // Sincronizamos el estado con los modificadores reales para que Ctrl no
+  // quede iluminado si se pierde un keyup al cambiar de foco.
+  function syncModsFromEvent(e) {
+    const altGraph = typeof e.getModifierState === 'function' && e.getModifierState('AltGraph');
+    if (e.code === 'AltRight' || e.key === 'AltGraph' || altGraph) heldMods.altGr = true;
+    if (!e.ctrlKey && !altGraph && !heldMods.altGr) heldMods.ctrl = false;
+    if (!e.altKey && !altGraph && !heldMods.altGr) heldMods.alt = false;
+    if (!e.shiftKey) heldMods.shift = false;
+    if (!e.ctrlKey && !e.altKey && !altGraph) heldMods.altGr = false;
+  }
+
   function getModState() {
     return {
       ctrl: heldMods.ctrl,
@@ -976,6 +988,15 @@
   }
 
   function showVirtualKeyDown(e) {
+    if (!e.ctrlKey && !e.altKey) {
+      virtualKeysForMod('ctrl').forEach(key => key.classList.remove('pressed'));
+      virtualKeysForMod('alt').forEach(key => key.classList.remove('pressed'));
+      virtualKeysForMod('altgr').forEach(key => key.classList.remove('pressed'));
+    }
+    if (!e.shiftKey) virtualKeysForMod('shift').forEach(key => key.classList.remove('pressed'));
+    if (e.code === 'AltRight' || e.key === 'AltGraph') {
+      virtualKeysForMod('ctrl').forEach(key => key.classList.remove('pressed'));
+    }
     let keys = virtualKeysForCode(e.code);
     if (e.key === 'AltGraph') keys = virtualKeysForMod('altgr');
     keys.forEach(key => key.classList.add('pressed'));
@@ -985,6 +1006,9 @@
     let keys = virtualKeysForCode(e.code);
     if (e.key === 'AltGraph') keys = virtualKeysForMod('altgr');
     keys.forEach(key => key.classList.remove('pressed'));
+    if (e.code === 'AltRight' || e.key === 'AltGraph') {
+      virtualKeysForMod('ctrl').forEach(key => key.classList.remove('pressed'));
+    }
   }
 
   function flashVirtualResult(className, eventCode) {
@@ -1409,13 +1433,15 @@
     if (state.waitingForNext || !state.running || !state.currentCombo) return;
     if (e.repeat) return;
 
+    syncModsFromEvent(e);
+
     const combo = state.currentCombo;
     const mods = combo.mods;
 
     // Ignore modifier-only presses and F-keys, arrows, etc.
     if (e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt' || e.key === 'Meta' ||
         e.key === 'AltGraph' || e.key === 'CapsLock' || e.key === 'Tab' ||
-        e.key === 'Escape' || e.key.startsWith('F') || e.key.startsWith('Arrow') ||
+        e.key === 'Escape' || /^F(?:[1-9]|1[0-2])$/.test(e.key) || e.key.startsWith('Arrow') ||
         e.key === 'Home' || e.key === 'End' || e.key === 'PageUp' || e.key === 'PageDown' ||
         e.key === 'Insert' || e.key === 'Delete') {
       return;
