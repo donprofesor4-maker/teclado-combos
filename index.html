@@ -1421,6 +1421,13 @@
       }
     } else if (combo.code) {
       keyMatch = e.code === combo.code;
+      // Algunos teclados del laboratorio tienen teclado numérico. Para los
+      // ejercicios que piden un número sin símbolo, acepta también su tecla
+      // equivalente del bloque numérico (por ejemplo, Numpad0 para Digit0).
+      if (!keyMatch && !combo.expectedKey) {
+        const digit = /^Digit([0-9])$/.exec(combo.code);
+        keyMatch = !!digit && e.code === 'Numpad' + digit[1];
+      }
     } else {
       keyMatch = false;
     }
