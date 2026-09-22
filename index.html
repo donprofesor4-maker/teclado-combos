@@ -682,6 +682,96 @@
     margin-top: 4px;
   }
 
+  /* ─── Modo Frases (emails y HTML) ─── */
+  #fraseMode { display: none; text-align: center; }
+  #fraseMode.active { display: block; }
+
+  .frase-hint {
+    color: rgba(255,255,255,0.45);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  .frase-target {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 18px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    line-height: 1.7;
+    letter-spacing: 1px;
+    word-break: break-word;
+    margin-bottom: 14px;
+    min-height: 90px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .frase-target .fr-letter { color: rgba(255,255,255,0.55); transition: all 0.1s; }
+  .frase-target .fr-letter.ok { color: #4ade80; text-shadow: 0 0 8px rgba(74,222,128,0.25); }
+  .frase-target .fr-letter.bad { color: #fb7185; background: rgba(244,63,94,0.18); border-radius: 4px; }
+  .frase-target .fr-letter.next { color: #fff; border-bottom: 2px solid #fbbf24; transform: translateY(-1px); }
+
+  .frase-input-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 18px 0 8px;
+  }
+
+  .frase-input {
+    width: 100%;
+    max-width: 640px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.35);
+    color: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: 1px;
+  }
+  .frase-input:focus { border-color: rgba(99,102,241,0.6); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+  .frase-input::placeholder { color: rgba(255,255,255,0.15); }
+
+  .frase-count {
+    color: rgba(255,255,255,0.3);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .btn-frase-exit {
+    margin-top: 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.6);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-frase-exit:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+  .btn-frase {
+    background: linear-gradient(135deg, rgba(34,197,94,0.25), rgba(16,185,129,0.15));
+    border: 1px solid rgba(34,197,94,0.3);
+    color: #86efac;
+  }
+  .btn-frase:hover { box-shadow: 0 8px 24px rgba(34,197,94,0.25); }
+  .btn-frase:active { transform: translateY(0); }
+
   @media (max-width: 480px) {
     #app { padding: 16px 12px; }
     header { gap: 6px; }
@@ -724,7 +814,7 @@
     <div class="level-bar" id="levelBar"></div>
   </div>
 
-  <div class="prompt-label">Presiona esta combinación</div>
+  <div class="prompt-label" id="comboPrompt">Presiona esta combinación</div>
 
   <div id="comboDisplay">
     <span class="keycap mod">Ctrl</span>
@@ -736,19 +826,30 @@
     <span class="fb-waiting">Esperando tu presión...</span>
   </div>
 
+  <!-- Modo Frases: practicar emails, HTML y símbolos -->
+  <div id="fraseMode">
+    <div class="prompt-label" style="margin-top:6px;">Reescribe la oración con los símbolos exactos</div>
+    <div class="frase-count" id="fraseCount"></div>
+    <div class="frase-target" id="fraseTarget" aria-live="polite"></div>
+    <div class="frase-input-wrap">
+      <input class="frase-input" id="fraseInput" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" placeholder="Escribe aquí...">
+    </div>
+    <button class="btn-frase-exit" id="fraseExit">← Volver al menú</button>
+  </div>
+
   <div class="virtual-keyboard-wrap" aria-label="Teclado Windows en pantalla">
     <div class="virtual-keyboard-title">Las teclas iluminadas son las que debes presionar</div>
     <div id="virtualKeyboard"></div>
   </div>
 
-  <div class="progress-wrap">
+  <div class="progress-wrap" id="comboProgressWrap">
     <div class="progress-dots" id="progressDots"></div>
     <div class="progress-text">
       Progreso: <strong id="progressCurrent">0</strong> / <strong id="progressTarget">5</strong> para subir de nivel
     </div>
   </div>
 
-  <div class="legend">
+  <div class="legend" id="legend">
     <span>🔵 <span class="lk">Ctrl</span> Control</span>
     <span>🟡 <span class="lk">Mayús</span> Mayúsculas (Shift)</span>
     <span>🟢 <span class="lk">Alt</span> Alt</span>
@@ -776,6 +877,7 @@
     </div>
     <div id="saveMsg" style="font-size:13px;color:#4ade80;font-weight:600;min-height:20px;margin-top:2px;"></div>
     <button class="btn" id="overlayBtn">Comenzar</button>
+    <button class="btn btn-frase" id="fraseBtn" style="margin-top:10px;">✍️ Frases difíciles (emails y HTML)</button>
   </div>
 
   <!-- Scoreboard overlay -->
@@ -855,6 +957,15 @@
   const tokenInput = $('tokenInput');
   const saveTokenBtn = $('saveTokenBtn');
   const tokenMsg = $('tokenMsg');
+  const fraseMode = $('fraseMode');
+  const fraseTarget = $('fraseTarget');
+  const fraseInput = $('fraseInput');
+  const fraseCount = $('fraseCount');
+  const fraseExit = $('fraseExit');
+  const fraseBtn = $('fraseBtn');
+  const comboPrompt = $('comboPrompt');
+  const comboProgressWrap = $('comboProgressWrap');
+  const legend = $('legend');
 
   // ─── GitHub Gist scoreboard config ───
   const CFG_GIST_ID = '7bb744a5de9335d04d307560f4c9bb27';
@@ -1350,6 +1461,201 @@
     setFeedback(`<span class="fb-levelup">🎉 ¡Nuevo nivel: ${LEVEL_NAMES[Math.min(state.level - 1, LEVEL_NAMES.length - 1)]}!</span>`, 'fb-levelup');
   }
 
+  // ─── Modo Frases: practicar emoticonos, emails y HTML ───
+  const FRASES = [
+    'Envia a profe@colegio.mx',
+    'copia <b>hola</b> y <i>mundo</i>',
+    'correo: alumno_2026@escuela.edu.mx',
+    '<h1>Mi pagina</h1> <p>hola</p>',
+    'usa @ y # y € como simbolos',
+    'visita www.escuela.mx/curso',
+    '<a href="https://campus.mx">entra</a>',
+    'mezcla <br> y <hr> y <img>',
+    'enviame: nombre.apellido@gmail.com',
+    'escribe <ul><li>uno</li></ul>',
+  ];
+
+  const FRASE_KEYS = {
+    es: {
+      '@': ['Digit2', 'altGr'], '#': ['Digit3', 'altGr'], '€': ['Digit5', 'altGr'], '¬': ['Digit6', 'altGr'], '|': ['Digit1', 'altGr'],
+      '.': ['Period', 'shift'], ',': ['Comma', ''], ';': ['Comma', 'shift'], ':': ['Period', 'shift'],
+      '-': ['Minus', ''], '_': ['Minus', 'shift'], '=': ['Equal', ''], '+': ['Equal', 'shift'],
+      '/': ['Digit7', 'shift'], '<': ['IntlBackslash', 'shift'], '>': ['IntlBackslash', 'shift'],
+      "'": ['Quote', ''], '"': ['Digit2', 'shift'], '?': ['Quote', 'shift'], '¿': ['BracketLeft', 'shift'], '¡': ['BracketLeft', 'shift'],
+      '(': ['Digit8', 'shift'], ')': ['Digit9', 'shift'],
+    },
+    us: {
+      '@': ['Digit2', 'shift'], '#': ['Digit3', 'shift'],
+      '.': ['Period', ''], ',': ['Comma', ''], ';': ['Semicolon', ''], ':': ['Semicolon', 'shift'],
+      '-': ['Minus', ''], '_': ['Minus', 'shift'], '=': ['Equal', ''], '+': ['Equal', 'shift'],
+      '/': ['Slash', ''], '<': ['Comma', 'shift'], '>': ['Period', 'shift'],
+      "'": ['Quote', ''], '"': ['Quote', 'shift'], '?': ['Slash', 'shift'],
+      '(': ['Digit9', 'shift'], ')': ['Digit0', 'shift'], '!': ['Digit1', 'shift'],
+    },
+  };
+
+  const fraseState = { active: false, index: 0, current: '', done: 0 };
+
+  function fraseKeysFor(ch) {
+    if (ch === ' ') return { code: 'Space', mods: {} };
+    const up = ch.toUpperCase();
+    if (/^[A-ZÑ]$/.test(up)) return { code: letterToCode(up), mods: {} };
+    if (/^[0-9]$/.test(ch)) return { code: 'Digit' + ch, mods: {} };
+    const layoutKey = LAYOUT === LAYOUT_DATA.es ? 'es' : 'us';
+    const hit = FRASE_KEYS[layoutKey] && FRASE_KEYS[layoutKey][ch];
+    if (hit) {
+      const mods = hit[1] === 'altGr' ? { altGr: true } : (hit[1] === 'shift' ? { shift: true } : {});
+      return { code: hit[0], mods };
+    }
+    return null;
+  }
+
+  function setComboUI(visible) {
+    comboDisplay.style.display = visible ? '' : 'none';
+    comboPrompt.style.display = visible ? '' : 'none';
+    comboProgressWrap.style.display = visible ? '' : 'none';
+    legend.style.display = visible ? '' : 'none';
+  }
+
+  function markFraseNext() {
+    const frase = fraseState.current;
+    const val = fraseInput.value;
+    const spans = fraseTarget.children;
+    let next = -1;
+    for (let i = 0; i < spans.length; i++) {
+      const st = i < val.length ? (val[i] === frase[i] ? 'ok' : 'bad') : '';
+      spans[i].className = 'fr-letter' + (st ? ' ' + st : '');
+      if (st === '' && next === -1) next = i;
+    }
+    for (let i = 0; i < spans.length; i++) spans[i].classList.remove('next');
+    if (next >= 0) {
+      spans[next].classList.add('next');
+      const t = fraseKeysFor(frase[next]);
+      if (t) {
+        showVirtualTarget(t);
+        const modHint = t.mods.altGr ? 'AltGr' : t.mods.shift ? 'Mayús' : '';
+        const hint = modHint ? ` — pulsa ${modHint} + ${frase[next] === ' ' ? 'Espacio' : frase[next]}` : ' — pulsa la tecla';
+        setFeedback(`<span class="fb-waiting">Siguiente: "${frase[next]}"${hint}</span>`, 'fb-waiting');
+      }
+    } else {
+      setFeedback('<span class="fb-waiting">¡Casi! Sigue escribiendo...</span>', 'fb-waiting');
+    }
+  }
+
+  function showFrase() {
+    if (fraseState.index >= FRASES.length) {
+      endFraseMode(true);
+      return;
+    }
+    fraseState.current = FRASES[fraseState.index];
+    fraseTarget.innerHTML = '';
+    for (const ch of fraseState.current) {
+      const sp = document.createElement('span');
+      sp.className = 'fr-letter';
+      sp.textContent = ch;
+      fraseTarget.appendChild(sp);
+    }
+    fraseInput.value = '';
+    fraseCount.textContent = `Oración ${fraseState.index + 1} / ${FRASES.length}`;
+    fraseInput.focus();
+    markFraseNext();
+  }
+
+  function onFraseInput() {
+    if (!fraseState.active) return;
+    const frase = fraseState.current;
+    const val = fraseInput.value;
+
+    if (val.length > frase.length) {
+      fraseInput.value = val.slice(0, frase.length);
+      state.lives--;
+      state.streak = 0;
+      state.wrong++;
+      renderStats();
+      setFeedback('<span class="fb-wrong">❌ Tecla de más</span>', 'fb-wrong');
+      markFraseNext();
+      if (state.lives <= 0) { endFraseMode(false); return; }
+      return;
+    }
+
+    const lastIdx = val.length - 1;
+    const lastBad = lastIdx >= 0 && val[lastIdx] !== frase[lastIdx];
+    if (lastBad) {
+      state.lives--;
+      state.streak = 0;
+      state.wrong++;
+      renderStats();
+      setFeedback('<span class="fb-wrong">❌ Tecla incorrecta</span>', 'fb-wrong');
+      markFraseNext();
+      if (state.lives <= 0) { endFraseMode(false); return; }
+      return;
+    }
+
+    if (val.length > 0) {
+      state.streak++;
+      state.correct++;
+      state.score += 5;
+      renderStats();
+    }
+
+    if (val.length === frase.length) {
+      state.score += 10;
+      fraseState.done++;
+      renderStats();
+      setFeedback('<span class="fb-correct">✅ ¡Oración completa! +10</span>', 'fb-correct');
+      fraseState.index++;
+      setTimeout(showFrase, 900);
+      return;
+    }
+
+    markFraseNext();
+  }
+
+  function startFraseMode() {
+    state.running = false;
+    state.score = 0;
+    state.level = 1;
+    state.lives = 3;
+    state.streak = 0;
+    state.bestStreak = 0;
+    state.correct = 0;
+    state.wrong = 0;
+    fraseState.active = true;
+    fraseState.index = 0;
+    fraseState.done = 0;
+
+    overlay.classList.add('hidden');
+    setComboUI(false);
+    fraseMode.classList.add('active');
+    renderStats();
+    showFrase();
+  }
+
+  function endFraseMode(completed) {
+    fraseState.active = false;
+    state.running = false;
+    overlayTitle.textContent = completed ? '🎉 ¡Frases completadas!' : '💀 Fin del modo frases';
+    overlaySub.textContent = completed
+      ? '¡Dominas símbolos, emails y HTML!'
+      : 'Cuidado con los caracteres especiales. ¡Inténtalo otra vez!';
+    overlayScore.style.display = 'block';
+    overlayScore.textContent = state.score;
+    overlayLevel.style.display = 'block';
+    overlayLevel.textContent = `Oraciones: ${fraseState.done} completadas`;
+    overlayStats.style.display = 'flex';
+    finalCorrect.textContent = state.correct;
+    finalStreak.textContent = state.bestStreak;
+    finalWrong.textContent = state.wrong;
+    nameInputWrap.classList.add('hidden');
+    saveMsg.textContent = '';
+    overlayBtn.textContent = '↩️ Volver al menú';
+    overlayBtn.className = 'btn';
+    overlayBtn.onclick = showStart;
+    fraseBtn.textContent = '🔄 Otra vez frases';
+    fraseBtn.style.display = '';
+    overlay.classList.remove('hidden');
+  }
+
   // ─── Game logic ───
 
   function getLevelConfig() {
@@ -1453,7 +1759,10 @@
     // Check modifiers
     // Use tracked physical key state + event flags as fallback
     const m = getModState();
-    const altGraph = isAltGrEvent(e);
+    // Si el ejercicio pide Ctrl+Alt "a secas" (sin símbolo AltGr), no tratar
+    // la combinación como AltGr: Ctrl+Alt+Mayús+número debe aceptarse tal cual.
+    const wantsPlainCtrlAlt = combo.mods.ctrl && combo.mods.alt && !combo.mods.altGr;
+    const altGraph = wantsPlainCtrlAlt ? false : isAltGrEvent(e);
     const ctrlPressed = (m.ctrl || e.ctrlKey) && !altGraph;
     const altPressed = (m.alt || e.altKey) && !altGraph;
     const altGrMatch = altGraph === !!mods.altGr;
@@ -1660,6 +1969,8 @@
     heldMods.ctrl = false; heldMods.shift = false; heldMods.alt = false; heldMods.altGr = false;
 
     overlay.classList.add('hidden');
+    setComboUI(true);
+    fraseMode.classList.remove('active');
     renderStats();
     nextCombo();
     renderProgress();
@@ -1719,7 +2030,8 @@
       'Aprende combinaciones de teclado mientras ganas puntos y subes de nivel.<br><br>' +
       'Presiona los modificadores <strong>Ctrl</strong>, <strong>Mayús</strong> y <strong>Alt</strong> ' +
       'junto con otras teclas.<br><br>' +
-      'Cada nivel tiene combinaciones más difíciles. ¡3 vidas!';
+      'Cada nivel tiene combinaciones más difíciles. ¡3 vidas!<br><br>' +
+      'También puedes practicar <strong>✍️ Frases difíciles</strong>: emails, HTML y símbolos especiales.';
     overlayScore.style.display = 'none';
     overlayLevel.style.display = 'none';
     overlayStats.style.display = 'none';
@@ -1728,6 +2040,11 @@
     overlayBtn.textContent = 'Comenzar';
     overlayBtn.className = 'btn';
     overlayBtn.onclick = startGame;
+    fraseBtn.textContent = '✍️ Frases difíciles (emails y HTML)';
+    fraseBtn.className = 'btn btn-frase';
+    fraseBtn.style.display = '';
+    setComboUI(true);
+    fraseMode.classList.remove('active');
   }
 
   // ─── Keyboard listeners ───
@@ -1747,6 +2064,8 @@
   // Capture-phase: prevent browser shortcuts (zoom, tabs, bookmarks, copy, paste, etc.)
   document.addEventListener('keydown', function(e) {
     if (!state.running) return;
+    // No bloquear Ctrl+C/V/Z mientras el scoreboard o la config estén abiertos
+    if (!scoreboardOverlay.classList.contains('hidden') || !configOverlay.classList.contains('hidden')) return;
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
     }
@@ -1778,6 +2097,22 @@
       container.appendChild(btn);
     });
   }
+
+  // ─── Modo Frases: listeners ───
+  fraseBtn.addEventListener('click', startFraseMode);
+  fraseExit.addEventListener('click', function() {
+    fraseMode.classList.remove('active');
+    state.running = false;
+    showStart();
+  });
+  fraseInput.addEventListener('input', onFraseInput);
+  // El input captura las teclas para que el juego de combos no las procese
+  fraseInput.addEventListener('keydown', function(e) {
+    e.stopPropagation();
+  });
+  fraseInput.addEventListener('keyup', function(e) {
+    e.stopPropagation();
+  });
 
   configToggle.addEventListener('click', function() {
     tokenInput.value = getGistToken();
