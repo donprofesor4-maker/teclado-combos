@@ -1586,7 +1586,7 @@
     },
   };
 
-  const fraseState = { active: false, index: 0, current: '', done: 0 };
+  const fraseState = { active: false, index: 0, current: '', done: 0, waiting: false };
 
   function fraseKeysFor(ch) {
     if (ch === ' ') return { code: 'Space', mods: {} };
@@ -1640,6 +1640,7 @@
       return;
     }
     fraseState.current = FRASES[fraseState.index];
+    fraseState.waiting = false;
     fraseTarget.innerHTML = '';
     for (const ch of fraseState.current) {
       const sp = document.createElement('span');
@@ -1656,6 +1657,10 @@
 
   function onFraseInput() {
     if (!fraseState.active) return;
+    if (fraseState.waiting) {
+      fraseInput.value = '';
+      return;
+    }
     const frase = fraseState.current;
     const val = fraseInput.value;
 
@@ -1706,6 +1711,7 @@
         setFeedback('<span class="fb-correct">✅ ¡Dirección completa! +10</span>', 'fb-correct');
       }
       fraseState.index++;
+      fraseState.waiting = true;
       setTimeout(showFrase, 900);
       return;
     }
