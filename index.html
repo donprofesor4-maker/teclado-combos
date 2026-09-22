@@ -1461,36 +1461,38 @@
     setFeedback(`<span class="fb-levelup">🎉 ¡Nuevo nivel: ${LEVEL_NAMES[Math.min(state.level - 1, LEVEL_NAMES.length - 1)]}!</span>`, 'fb-levelup');
   }
 
-  // ─── Modo Frases: practicar emoticonos, emails y HTML ───
+  // ─── Modo Frases: practicar direcciones, URLs y símbolos ───
   const FRASES = [
-    'Envia a profe@colegio.mx',
-    'copia <b>hola</b> y <i>mundo</i>',
-    'correo: alumno_2026@escuela.edu.mx',
-    '<h1>Mi pagina</h1> <p>hola</p>',
-    'usa @ y # y € como simbolos',
-    'visita www.escuela.mx/curso',
-    '<a href="https://campus.mx">entra</a>',
-    'mezcla <br> y <hr> y <img>',
-    'enviame: nombre.apellido@gmail.com',
-    'escribe <ul><li>uno</li></ul>',
+    'https://campus.mx/aula3',
+    'www.escuela.edu.mx/curso',
+    'feed.ly/i/my/me',
+    'correo: profe@mi-escuela.mx',
+    'https://docs.gob.mx/ley1',
+    'busca: word?q=html++',
+    'revisa https://salud.mx/',
+    'https://i.mx/noticias',
+    'mi pagina: http://a.io/d',
+    'https://youtu.be/_x7Z9',
   ];
 
   const FRASE_KEYS = {
     es: {
       '@': ['Digit2', 'altGr'], '#': ['Digit3', 'altGr'], '€': ['Digit5', 'altGr'], '¬': ['Digit6', 'altGr'], '|': ['Digit1', 'altGr'],
-      '.': ['Period', 'shift'], ',': ['Comma', ''], ';': ['Comma', 'shift'], ':': ['Period', 'shift'],
-      '-': ['Minus', ''], '_': ['Minus', 'shift'], '=': ['Equal', ''], '+': ['Equal', 'shift'],
+      '.' : ['Period', ''], ',': ['Comma', ''], ';': ['Comma', 'shift'], ':': ['Period', 'shift'],
+      '-': ['Minus', ''], '_': ['Minus', 'shift'], '=': ['Digit0', 'shift'], '+': ['Equal', 'shift'],
       '/': ['Digit7', 'shift'], '<': ['IntlBackslash', 'shift'], '>': ['IntlBackslash', 'shift'],
+      '!': ['Digit1', 'shift'], '$': ['Digit4', 'shift'], '%': ['Digit5', 'shift'], '&': ['Digit6', 'shift'],
       "'": ['Quote', ''], '"': ['Digit2', 'shift'], '?': ['Quote', 'shift'], '¿': ['BracketLeft', 'shift'], '¡': ['BracketLeft', 'shift'],
-      '(': ['Digit8', 'shift'], ')': ['Digit9', 'shift'],
+      '(': ['Digit8', 'shift'], ')': ['Digit9', 'shift'], '*': ['Digit8', 'shift'],
     },
     us: {
-      '@': ['Digit2', 'shift'], '#': ['Digit3', 'shift'],
-      '.': ['Period', ''], ',': ['Comma', ''], ';': ['Semicolon', ''], ':': ['Semicolon', 'shift'],
+      '@': ['Digit2', 'shift'], '#': ['Digit3', 'shift'], '^': ['Digit6', 'shift'],
+      '.' : ['Period', ''], ',': ['Comma', ''], ';': ['Semicolon', ''], ':': ['Semicolon', 'shift'],
       '-': ['Minus', ''], '_': ['Minus', 'shift'], '=': ['Equal', ''], '+': ['Equal', 'shift'],
       '/': ['Slash', ''], '<': ['Comma', 'shift'], '>': ['Period', 'shift'],
+      '!': ['Digit1', 'shift'], '$': ['Digit4', 'shift'], '%': ['Digit5', 'shift'], '&': ['Digit7', 'shift'],
       "'": ['Quote', ''], '"': ['Quote', 'shift'], '?': ['Slash', 'shift'],
-      '(': ['Digit9', 'shift'], ')': ['Digit0', 'shift'], '!': ['Digit1', 'shift'],
+      '(': ['Digit9', 'shift'], ')': ['Digit0', 'shift'], '*': ['Digit8', 'shift'],
     },
   };
 
@@ -1556,7 +1558,7 @@
       fraseTarget.appendChild(sp);
     }
     fraseInput.value = '';
-    fraseCount.textContent = `Oración ${fraseState.index + 1} / ${FRASES.length}`;
+    fraseCount.textContent = `Dirección ${fraseState.index + 1} / ${FRASES.length}`;
     fraseInput.focus();
     markFraseNext();
   }
@@ -1634,14 +1636,14 @@
   function endFraseMode(completed) {
     fraseState.active = false;
     state.running = false;
-    overlayTitle.textContent = completed ? '🎉 ¡Frases completadas!' : '💀 Fin del modo frases';
+    overlayTitle.textContent = completed ? '🎉 ¡Direcciones dominadas!' : '💀 Fin de la práctica';
     overlaySub.textContent = completed
-      ? '¡Dominas símbolos, emails y HTML!'
-      : 'Cuidado con los caracteres especiales. ¡Inténtalo otra vez!';
+      ? '¡Escribes URLs y símbolos como un profesional!'
+      : 'Cuidado con los símbolos: / : . _ ? = % & +. ¡Otra vez!';
     overlayScore.style.display = 'block';
     overlayScore.textContent = state.score;
     overlayLevel.style.display = 'block';
-    overlayLevel.textContent = `Oraciones: ${fraseState.done} completadas`;
+    overlayLevel.textContent = `Direcciones: ${fraseState.done} de ${FRASES.length}`;
     overlayStats.style.display = 'flex';
     finalCorrect.textContent = state.correct;
     finalStreak.textContent = state.bestStreak;
@@ -1651,8 +1653,10 @@
     overlayBtn.textContent = '↩️ Volver al menú';
     overlayBtn.className = 'btn';
     overlayBtn.onclick = showStart;
-    fraseBtn.textContent = '🔄 Otra vez frases';
+    fraseBtn.textContent = '🔄 Otra vez direcciones';
+    fraseBtn.className = 'btn';
     fraseBtn.style.display = '';
+    fraseBtn.onclick = startFraseMode;
     overlay.classList.remove('hidden');
   }
 
@@ -1971,6 +1975,7 @@
     overlay.classList.add('hidden');
     setComboUI(true);
     fraseMode.classList.remove('active');
+    fraseBtn.style.display = 'none';
     renderStats();
     nextCombo();
     renderProgress();
@@ -2006,6 +2011,10 @@
     overlayBtn.textContent = 'Reintentar';
     overlayBtn.className = 'btn btn-restart';
     overlayBtn.onclick = startGame;
+    fraseBtn.textContent = '🔗 Practicar direcciones (URLs)';
+    fraseBtn.className = 'btn';
+    fraseBtn.style.display = '';
+    fraseBtn.onclick = startFraseMode;
   }
 
   async function handleSaveScore() {
@@ -2025,23 +2034,22 @@
 
   function showStart() {
     overlay.classList.remove('hidden');
-    overlayTitle.textContent = '⌨️ Keyboard Combos';
+    overlayTitle.textContent = '🔗 Practica direcciones y URLs';
     overlaySub.innerHTML =
-      'Aprende combinaciones de teclado mientras ganas puntos y subes de nivel.<br><br>' +
-      'Presiona los modificadores <strong>Ctrl</strong>, <strong>Mayús</strong> y <strong>Alt</strong> ' +
-      'junto con otras teclas.<br><br>' +
-      'Cada nivel tiene combinaciones más difíciles. ¡3 vidas!<br><br>' +
-      'También puedes practicar <strong>✍️ Frases difíciles</strong>: emails, HTML y símbolos especiales.';
+      'Escribe direcciones (URLs) y correos para practicar los símbolos del teclado:<br><br>' +
+      '<strong>/ : ._? = % & +</strong> y más.<br><br>' +
+      'Tienes 3 vidas; por cada acierto ganas puntos. ¡Sigue hasta dominarlo!<br><br>' +
+      'Si quieres el reto extra de <strong>combos Ctrl/Mayús/Alt</strong>, usa el botón de abajo.';
     overlayScore.style.display = 'none';
     overlayLevel.style.display = 'none';
     overlayStats.style.display = 'none';
     nameInputWrap.classList.add('hidden');
     saveMsg.textContent = '';
-    overlayBtn.textContent = 'Comenzar';
+    overlayBtn.textContent = '📝 Practicar direcciones';
     overlayBtn.className = 'btn';
-    overlayBtn.onclick = startGame;
-    fraseBtn.textContent = '✍️ Frases difíciles (emails y HTML)';
-    fraseBtn.className = 'btn btn-frase';
+    overlayBtn.onclick = startFraseMode;
+    fraseBtn.textContent = '🗝️ Modo combos (Ctrl+Mayús+Alt)';
+    fraseBtn.className = 'btn';
     fraseBtn.style.display = '';
     setComboUI(true);
     fraseMode.classList.remove('active');
@@ -2099,7 +2107,6 @@
   }
 
   // ─── Modo Frases: listeners ───
-  fraseBtn.addEventListener('click', startFraseMode);
   fraseExit.addEventListener('click', function() {
     fraseMode.classList.remove('active');
     state.running = false;
