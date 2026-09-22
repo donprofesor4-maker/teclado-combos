@@ -216,12 +216,25 @@
     text-transform: uppercase;
   }
 
-  #virtualKeyboard { display: flex; flex-direction: column; gap: 4px; }
+  #virtualKeyboard { display: flex; flex-direction: row; gap: 6px; align-items: stretch; }
+  #vkMain { display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto; min-width: 0; }
+  #vkSide { display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto; }
   .vk-row { display: flex; justify-content: center; gap: 4px; }
   .vk-row.row-home { padding-inline: 2.5%; }
   .vk-row.row-shift { padding-inline: 1%; }
-  .vk-row.function, .vk-row.utility { gap: 3px; }
-  .vk-row.numpad { padding-inline: 8%; }
+  .vk-row.function { gap: 3px; }
+
+  #vkNav { display: grid; grid-template-columns: repeat(3, 44px); gap: 4px; align-content: start; justify-content: center; }
+  #vkNav .vk-key { width: 44px; }
+  #vkArrows { display: grid; grid-template-columns: repeat(2, 44px); gap: 4px; align-content: start; justify-content: center; }
+  #vkArrows .vk-key { width: 44px; }
+  #vkNumpad { display: grid; grid-template-columns: repeat(4, 46px); grid-template-rows: repeat(5, 34px); grid-auto-rows: 34px; gap: 4px; align-content: start; justify-content: center; }
+  #vkNumpad .vk-key { width: 46px; }
+  .np-plus { grid-row: 2 / 4; grid-column: 4 / 5; }
+  .np-enter { grid-row: 4 / 6; grid-column: 4 / 5; }
+  .np-zero { grid-row: 5 / 6; grid-column: 1 / 3; }
+  #vkNumpad .np-plus, #vkNumpad .np-enter, #vkNumpad .np-zero { height: auto; }
+  #vkNumpad .np-zero { width: auto; }
 
   .vk-key {
     flex: 1 1 0;
@@ -780,6 +793,14 @@
     .keycap.main { font-size: 22px; padding: 12px 20px; }
     #comboDisplay { gap: 6px; }
     .virtual-keyboard-wrap { padding: 7px 5px; }
+    #virtualKeyboard { flex-direction: column; gap: 3px; }
+    #vkMain { width: 100%; }
+    #vkSide { flex-direction: row; }
+    #vkNav { grid-template-columns: repeat(3, 34px); gap: 4px; }
+    #vkArrows { grid-template-columns: repeat(2, 34px); gap: 4px; }
+    #vkNumpad { grid-template-columns: repeat(4, 34px); gap: 4px; justify-content: center; }
+    #vkNav .vk-key, #vkArrows .vk-key, #vkNumpad .vk-key { width: 34px; }
+    #vkNumpad .np-zero { width: auto; }
     .vk-row { gap: 2px; }
     .vk-key { height: 29px; border-radius: 4px; font-size: 8px; }
     .vk-key.wide { font-size: 7px; }
@@ -1050,34 +1071,68 @@
       ['Ctrl','ControlLeft','ctrl','wide'], ['Win','MetaLeft','', 'wide'], ['Alt','AltLeft','alt','wide'],
       ['','Space','','space'], ['AltGr','AltRight','altgr','wide'], ['Menú','ContextMenu','', 'wide'],
       ['Ctrl','ControlRight','ctrl','wide']
-    ]},
-    { className: 'utility', keys: [
-      ['Insert','Insert'], ['Inicio','Home'], ['RePág','PageUp'], ['Supr','Delete'], ['Fin','End'], ['AvPág','PageDown'],
-      ['←','ArrowLeft'], ['↑','ArrowUp'], ['↓','ArrowDown'], ['→','ArrowRight']
-    ]},
-    { className: 'numpad', keys: [
-      ['Bloq Num','NumLock','', 'wide'], ['/','NumpadDivide'], ['*','NumpadMultiply'], ['−','NumpadSubtract'],
-      ['7','Numpad7'], ['8','Numpad8'], ['9','Numpad9'], ['+','NumpadAdd','', 'wide'],
-      ['4','Numpad4'], ['5','Numpad5'], ['6','Numpad6'], ['1','Numpad1'], ['2','Numpad2'], ['3','Numpad3'],
-      ['0','Numpad0','', 'wide'], [',','NumpadDecimal'], ['Enter','NumpadEnter','', 'wide']
     ]}
   ];
 
+  const VIRTUAL_NAV_KEYS = [
+    ['Insert','Insert'], ['Inicio','Home'], ['RePág','PageUp'],
+    ['Supr','Delete'], ['Fin','End'], ['AvPág','PageDown'],
+  ];
+
+  const VIRTUAL_ARROW_KEYS = [
+    ['←','ArrowLeft'], ['↑','ArrowUp'],
+    ['↓','ArrowDown'], ['→','ArrowRight'],
+  ];
+
+  const VIRTUAL_NUMPAD_KEYS = [
+    ['Bloq Num','NumLock'], ['/','NumpadDivide'], ['*','NumpadMultiply'], ['−','NumpadSubtract'],
+    ['7','Numpad7'], ['8','Numpad8'], ['9','Numpad9'], ['+','NumpadAdd','','np-plus'],
+    ['4','Numpad4'], ['5','Numpad5'], ['6','Numpad6'],
+    ['1','Numpad1'], ['2','Numpad2'], ['3','Numpad3'], ['Enter','NumpadEnter','','np-enter'],
+    ['0','Numpad0','','np-zero'], [',','NumpadDecimal'],
+  ];
+
+  function appendVirtualKey(parent, label, code, mod, extraClass) {
+    const key = document.createElement('span');
+    key.className = 'vk-key' + (extraClass ? ' ' + extraClass : '');
+    key.textContent = label;
+    key.dataset.code = code;
+    if (mod) key.dataset.mod = mod;
+    parent.appendChild(key);
+  }
+
   function buildVirtualKeyboard() {
     virtualKeyboard.innerHTML = '';
+
+    const main = document.createElement('div');
+    main.id = 'vkMain';
     VIRTUAL_KEY_ROWS.forEach(rowData => {
       const row = document.createElement('div');
       row.className = 'vk-row ' + rowData.className;
-      rowData.keys.forEach(([label, code, mod, extraClass]) => {
-        const key = document.createElement('span');
-        key.className = 'vk-key' + (extraClass ? ' ' + extraClass : '');
-        key.textContent = label;
-        key.dataset.code = code;
-        if (mod) key.dataset.mod = mod;
-        row.appendChild(key);
-      });
-      virtualKeyboard.appendChild(row);
+      rowData.keys.forEach(([label, code, mod, extraClass]) => appendVirtualKey(row, label, code, mod, extraClass));
+      main.appendChild(row);
     });
+    virtualKeyboard.appendChild(main);
+
+    const side = document.createElement('div');
+    side.id = 'vkSide';
+
+    const nav = document.createElement('div');
+    nav.id = 'vkNav';
+    VIRTUAL_NAV_KEYS.forEach(([label, code, mod, extraClass]) => appendVirtualKey(nav, label, code, mod, extraClass));
+    side.appendChild(nav);
+
+    const arrows = document.createElement('div');
+    arrows.id = 'vkArrows';
+    VIRTUAL_ARROW_KEYS.forEach(([label, code, mod, extraClass]) => appendVirtualKey(arrows, label, code, mod, extraClass));
+    side.appendChild(arrows);
+
+    const numpad = document.createElement('div');
+    numpad.id = 'vkNumpad';
+    VIRTUAL_NUMPAD_KEYS.forEach(([label, code, mod, extraClass]) => appendVirtualKey(numpad, label, code, mod, extraClass));
+    side.appendChild(numpad);
+
+    virtualKeyboard.appendChild(side);
   }
 
   function virtualKeysForCode(code) {
