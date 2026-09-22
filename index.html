@@ -1056,7 +1056,7 @@
       ["'\n?",'Quote'], ['¿\n¡','BracketLeft'], ['Retroceso','Backspace','', 'extra-wide']
     ]},
     { className: '', keys: [
-      ['Tab','Tab','', 'wide'], ['Q','KeyQ'], ['W','KeyW'], ['E','KeyE'], ['R','KeyR'], ['T','KeyT'],
+      ['Tab','Tab','', 'wide'], ['Q\n@','KeyQ'], ['W','KeyW'], ['E','KeyE'], ['R','KeyR'], ['T','KeyT'],
       ['Y','KeyY'], ['U','KeyU'], ['I','KeyI'], ['O','KeyO'], ['P','KeyP'],
       ['´\n¨','BracketLeft'], ['+\n*','BracketRight']
     ]},
@@ -1233,7 +1233,7 @@
       name: 'Español',
       letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZÑ'.split(''),
       shiftSymbols: { '1':'!','2':'"','3':'·','4':'$','5':'%','6':'&','7':'/','8':'(','9':')','0':'=' },
-      altgrSymbols: { '2':'@','3':'#','5':'€','6':'¬' },
+      altgrSymbols: { '1':'|','2':'|','3':'#','5':'€','6':'¬' },
       extraCodes: { 'Ñ': 'Semicolon' },
     },
     us: {
@@ -1567,13 +1567,13 @@
 
   const FRASE_KEYS = {
     es: {
-      '@': ['Digit2', 'altGr'], '#': ['Digit3', 'altGr'], '€': ['Digit5', 'altGr'], '¬': ['Digit6', 'altGr'], '|': ['Digit1', 'altGr'],
+      '@': ['KeyQ', 'altGr'], '#': ['Digit3', 'altGr'], '€': ['Digit5', 'altGr'], '¬': ['Digit6', 'altGr'], '|': ['Digit2', 'altGr'],
       '.' : ['Period', ''], ',': ['Comma', ''], ';': ['Comma', 'shift'], ':': ['Period', 'shift'],
-      '-': ['Minus', ''], '_': ['Minus', 'shift'], '=': ['Digit0', 'shift'], '+': ['Equal', 'shift'],
+      '-': ['Minus', ''], '_': ['Minus', 'shift'], '=': ['Digit0', 'shift'], '+': ['BracketRight', ''],
       '/': ['Digit7', 'shift'], '<': ['IntlBackslash', 'shift'], '>': ['IntlBackslash', 'shift'],
       '!': ['Digit1', 'shift'], '$': ['Digit4', 'shift'], '%': ['Digit5', 'shift'], '&': ['Digit6', 'shift'],
       "'": ['Quote', ''], '"': ['Digit2', 'shift'], '?': ['Quote', 'shift'], '¿': ['BracketLeft', 'shift'], '¡': ['BracketLeft', 'shift'],
-      '(': ['Digit8', 'shift'], ')': ['Digit9', 'shift'], '*': ['Digit8', 'shift'],
+      '(': ['Digit8', 'shift'], ')': ['Digit9', 'shift'], '*': ['BracketRight', 'shift'],
     },
     us: {
       '@': ['Digit2', 'shift'], '#': ['Digit3', 'shift'], '^': ['Digit6', 'shift'],
