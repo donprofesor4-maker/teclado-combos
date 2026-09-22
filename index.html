@@ -219,6 +219,7 @@
   #virtualKeyboard { display: flex; flex-direction: row; gap: 10px; align-items: flex-start; }
   #vkMain { display: flex; flex-direction: column; gap: 5px; flex: 1 1 auto; min-width: 0; }
   #vkSide { display: flex; flex-direction: row; gap: 8px; flex: 0 0 auto; align-items: flex-start; }
+  #vkNavArrows { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
   .vk-row { display: flex; justify-content: center; gap: 5px; }
   .vk-row.row-home { padding-inline: 2.5%; }
   .vk-row.row-shift { padding-inline: 1%; }
@@ -1119,15 +1120,20 @@
     const side = document.createElement('div');
     side.id = 'vkSide';
 
+    const navArrows = document.createElement('div');
+    navArrows.id = 'vkNavArrows';
+
     const nav = document.createElement('div');
     nav.id = 'vkNav';
     VIRTUAL_NAV_KEYS.forEach(([label, code, mod, extraClass]) => appendVirtualKey(nav, label, code, mod, extraClass));
-    side.appendChild(nav);
+    navArrows.appendChild(nav);
 
     const arrows = document.createElement('div');
     arrows.id = 'vkArrows';
     VIRTUAL_ARROW_KEYS.forEach(([label, code, mod, extraClass]) => appendVirtualKey(arrows, label, code, mod, extraClass));
-    side.appendChild(arrows);
+    navArrows.appendChild(arrows);
+
+    side.appendChild(navArrows);
 
     const numpad = document.createElement('div');
     numpad.id = 'vkNumpad';
