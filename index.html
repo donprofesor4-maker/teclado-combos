@@ -1586,7 +1586,7 @@
     },
   };
 
-  const fraseState = { active: false, index: 0, current: '', done: 0, waiting: false };
+  const fraseState = { active: false, index: 0, current: '', done: 0, waiting: false, pending: '' };
 
   function fraseKeysFor(ch) {
     if (ch === ' ') return { code: 'Space', mods: {} };
@@ -1649,6 +1649,21 @@
       fraseTarget.appendChild(sp);
     }
     fraseInput.value = '';
+    const pending = fraseState.pending;
+    fraseState.pending = '';
+    if (pending) {
+      const np = fraseState.current;
+      let seed = '';
+      for (let i = 0; i < pending.length && i < np.length; i++) {
+        if (pending[i] === np[i]) seed += pending[i];
+        else break;
+      }
+      fraseInput.value = seed;
+      if (seed.length === np.length) {
+        onFraseInput();
+        return;
+      }
+    }
     const linfo = fraseLevelInfo(fraseState.index);
     fraseCount.textContent = `Nivel ${linfo.name} · Dirección ${linfo.pos}/${linfo.total}`;
     fraseInput.focus();
@@ -1658,7 +1673,14 @@
   function onFraseInput() {
     if (!fraseState.active) return;
     if (fraseState.waiting) {
-      fraseInput.value = '';
+      const base = fraseState.current.length;
+      const val = fraseInput.value;
+      if (val.length > base) {
+        fraseState.pending += val.slice(base);
+        fraseInput.value = val.slice(0, base);
+      } else {
+        fraseInput.value = '';
+      }
       return;
     }
     const frase = fraseState.current;
@@ -1731,6 +1753,7 @@
     fraseState.active = true;
     fraseState.index = 0;
     fraseState.done = 0;
+    fraseState.pending = '';
 
     overlay.classList.add('hidden');
     setComboUI(false);
