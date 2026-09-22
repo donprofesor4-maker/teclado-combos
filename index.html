@@ -1476,6 +1476,32 @@
     'https://feedly.com/i/my/me?s=entry:bgtYe7Uj0O31nABEcl%2Fk58TvI%2B4GmhBPkFttRrBAQhA%3D_1a0c62487bf:34792ca:ccdee654',
   ];
 
+  const FRASE_LEVELS = [
+    { name: 'Básico', frases: [0, 1, 2, 3] },
+    { name: 'Intermedio', frases: [4, 5, 6, 7] },
+    { name: 'Difícil', frases: [8, 9, 10] },
+  ];
+
+  function fraseLevelInfo(i) {
+    for (let l = 0; l < FRASE_LEVELS.length; l++) {
+      const fr = FRASE_LEVELS[l].frases;
+      if (fr.includes(i)) {
+        return { name: FRASE_LEVELS[l].name, pos: fr.indexOf(i) + 1, total: fr.length };
+      }
+    }
+    return { name: FRASE_LEVELS[FRASE_LEVELS.length - 1].name, pos: 1, total: 1 };
+  }
+
+  function lastFrasesOfLevel(i) {
+    const lv = FRASE_LEVELS.find(l => l.frases.includes(i));
+    return lv != null && i === lv.frases[lv.frases.length - 1];
+  }
+
+  function getFraseWins() { return parseInt(localStorage.getItem('kc_frase_wins') || '0', 10) || 0; }
+  function setFraseWins(n) { localStorage.setItem('kc_frase_wins', String(n)); }
+  function hasFraseTrophy() { return localStorage.getItem('kc_frase_trophy') === '1'; }
+  function setFraseTrophy() { localStorage.setItem('kc_frase_trophy', '1'); }
+
   const FRASE_KEYS = {
     es: {
       '@': ['Digit2', 'altGr'], '#': ['Digit3', 'altGr'], '€': ['Digit5', 'altGr'], '¬': ['Digit6', 'altGr'], '|': ['Digit1', 'altGr'],
@@ -1559,7 +1585,8 @@
       fraseTarget.appendChild(sp);
     }
     fraseInput.value = '';
-    fraseCount.textContent = `Dirección ${fraseState.index + 1} / ${FRASES.length}`;
+    const linfo = fraseLevelInfo(fraseState.index);
+    fraseCount.textContent = `Nivel ${linfo.name} · Dirección ${linfo.pos}/${linfo.total}`;
     fraseInput.focus();
     markFraseNext();
   }
@@ -1605,7 +1632,16 @@
       state.score += 10;
       fraseState.done++;
       renderStats();
-      setFeedback('<span class="fb-correct">✅ ¡Oración completa! +10</span>', 'fb-correct');
+      const isLevelEnd = lastFrasesOfLevel(fraseState.index);
+      const isLastFrase = fraseState.index >= FRASES.length - 1;
+      if (isLastFrase) {
+        setFeedback('<span class="fb-correct">✅ ¡Ultima direccion completa! +10</span>', 'fb-correct');
+      } else if (isLevelEnd) {
+        const nextLv = fraseLevelInfo(fraseState.index + 1);
+        setFeedback(`<span class="fb-correct">🎉 ¡Nivel ${nextLv.name} desbloqueado! +10</span>`, 'fb-correct');
+      } else {
+        setFeedback('<span class="fb-correct">✅ ¡Dirección completa! +10</span>', 'fb-correct');
+      }
       fraseState.index++;
       setTimeout(showFrase, 900);
       return;
@@ -1637,10 +1673,29 @@
   function endFraseMode(completed) {
     fraseState.active = false;
     state.running = false;
-    overlayTitle.textContent = completed ? '🎉 ¡Direcciones dominadas!' : '💀 Fin de la práctica';
-    overlaySub.textContent = completed
-      ? '¡Escribes URLs y símbolos como un profesional!'
-      : 'Cuidado con los símbolos: / : . _ ? = % & +. ¡Otra vez!';
+    if (completed) {
+      const wins = getFraseWins() + 1;
+      setFraseWins(wins);
+      const newTrophy = !hasFraseTrophy() && wins >= 3;
+      if (newTrophy) setFraseTrophy();
+      if (newTrophy) {
+        overlayTitle.textContent = '🏆 ¡COPA DIRECCIONES GANADA!';
+        overlaySub.textContent = 'Completaste las tres niveles 3 veces: te llevas la copa. ¡Eres un crack de los símbolos!';
+      } else {
+        overlayTitle.textContent = '🎉 ¡Direcciones dominadas!';
+        if (hasFraseTrophy()) {
+          overlaySub.textContent = `La copa ya es tuya (${wins} pasadas completadas). ¡Sigue sumando puntos!`;
+        } else {
+          const left = 3 - wins;
+          overlaySub.textContent = `Pasadas completadas: ${wins}. ` + (left === 1
+            ? '¡Solo te falta 1 pasada más para la copa 🏆!'
+            : `Te faltan ${left} pasadas más para ganar la copa 🏆.`);
+        }
+      }
+    } else {
+      overlayTitle.textContent = '💀 Fin de la práctica';
+      overlaySub.textContent = 'Cuidado con los símbolos: / : . _ ? = % & +. ¡Otra vez!';
+    }
     overlayScore.style.display = 'block';
     overlayScore.textContent = state.score;
     overlayLevel.style.display = 'block';
@@ -2036,10 +2091,19 @@
   function showStart() {
     overlay.classList.remove('hidden');
     overlayTitle.textContent = '🔗 Practica direcciones y URLs';
+    const wins = getFraseWins();
+    const trophy = hasFraseTrophy();
     overlaySub.innerHTML =
       'Escribe direcciones (URLs) y correos para practicar los símbolos del teclado:<br><br>' +
-      '<strong>/ : ._? = % & +</strong> y más.<br><br>' +
-      'Tienes 3 vidas; por cada acierto ganas puntos. ¡Sigue hasta dominarlo!<br><br>' +
+      '<strong>/ : . _ ? = % & +</strong> y más.<br><br>' +
+      'Hay 3 niveles: <strong>Básico → Intermedio → Difícil</strong>.<br>' +
+      'Tienes 3 vidas; por cada acierto ganas puntos.<br><br>' +
+      (trophy
+        ? '🏆 <strong>¡COPA DIRECCIONES GANADA!</strong> — vuelve cuando quieras.<br><br>'
+        : `🏆 Copa direcciones: <strong>${Math.min(wins, 3)}/3</strong> — ` +
+          (wins >= 3
+            ? '¡copa lista!<br><br>'
+            : `te faltan ${3 - wins} pasadas completas (${wins} hechas).<br><br>`)) +
       'Si quieres el reto extra de <strong>combos Ctrl/Mayús/Alt</strong>, usa el botón de abajo.';
     overlayScore.style.display = 'none';
     overlayLevel.style.display = 'none';
