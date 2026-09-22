@@ -216,20 +216,21 @@
     text-transform: uppercase;
   }
 
-  #virtualKeyboard { display: flex; flex-direction: row; gap: 10px; align-items: stretch; }
+  #virtualKeyboard { display: flex; flex-direction: row; gap: 10px; align-items: flex-start; }
   #vkMain { display: flex; flex-direction: column; gap: 5px; flex: 1 1 auto; min-width: 0; }
-  #vkSide { display: flex; flex-direction: column; gap: 10px; flex: 0 0 auto; }
+  #vkSide { display: flex; flex-direction: row; gap: 8px; flex: 0 0 auto; align-items: flex-start; }
   .vk-row { display: flex; justify-content: center; gap: 5px; }
   .vk-row.row-home { padding-inline: 2.5%; }
   .vk-row.row-shift { padding-inline: 1%; }
   .vk-row.function { gap: 4px; }
 
-  #vkNav { display: grid; grid-template-columns: repeat(3, 64px); gap: 5px; align-content: start; justify-content: center; }
-  #vkNav .vk-key { width: 64px; font-size: 10px; }
-  #vkArrows { display: grid; grid-template-columns: repeat(2, 64px); gap: 5px; align-content: start; justify-content: center; }
-  #vkArrows .vk-key { width: 64px; }
-  #vkNumpad { display: grid; grid-template-columns: repeat(4, 64px); grid-template-rows: repeat(5, 48px); grid-auto-rows: 48px; gap: 5px; align-content: start; justify-content: center; }
-  #vkNumpad .vk-key { width: 64px; height: 48px; font-size: 14px; }
+  #vkNav { display: grid; grid-template-columns: repeat(3, 46px); gap: 4px; align-content: start; justify-content: center; }
+  #vkNav .vk-key { width: 46px; font-size: 10px; }
+  #vkArrows { display: grid; grid-template-columns: repeat(2, 46px); gap: 4px; align-content: start; justify-content: center; }
+  #vkArrows .vk-key { width: 46px; }
+  #vkNumpad { display: grid; grid-template-columns: repeat(4, 46px); grid-template-rows: repeat(5, 48px); grid-auto-rows: 48px; gap: 4px; align-content: start; justify-content: center; }
+  #vkNumpad .vk-key { width: 46px; height: 48px; font-size: 12px; }
+  #vkNumpad .vk-key[data-code="NumLock"] { font-size: 8px; }
   .np-plus { grid-row: 2 / 4; grid-column: 4 / 5; }
   .np-enter { grid-row: 4 / 6; grid-column: 4 / 5; }
   .np-zero { grid-row: 5 / 6; grid-column: 1 / 3; }
